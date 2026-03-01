@@ -4,8 +4,8 @@ import os
 # ===============================
 # WORLD SETTINGS
 # ===============================
-WORLD_WIDTH = 50
-WORLD_HEIGHT = 50
+WORLD_WIDTH = 40
+WORLD_HEIGHT = 40
 
 # Maximum window size (to keep it reasonable)
 MAX_SCREEN_WIDTH = 1000
@@ -164,4 +164,4 @@ def draw_world(agents, foods, farms, crops, episode, step, energy_packs, dangers
     screen.blit(step_text, (10, 30))
 
     pygame.display.flip()
-    clock.tick(100)
+    clock.tick(300)

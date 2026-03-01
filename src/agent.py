@@ -17,9 +17,11 @@ class Agent:
         self.farm_memory = []
         self.plot_size = 15
         self.plot_size = 15
-        # Territory settings
         self.plot_size = 15
         half = self.plot_size // 2
+        self.goal = "maintain"
+        self.current_task = None
+        self.goal_timer = 0
 
         if self.name == "A":
             # Top-left
@@ -62,12 +64,13 @@ class Agent:
         }
         self.inventory = {
             "food": 0,
-            "seeds": 0
+            "seeds": 0,
+            "crops" : 0
         }
         self.danger_weight = danger_weight
         self.epsilon = epsilon
-        self.lr = 0.1        # learning rate
-        self.gamma = 0.9     # future importance
+        self.lr = 0.1        
+        self.gamma = 0.9    
         
     
     
@@ -81,6 +84,55 @@ class Agent:
      )
 
 
+    def get_world_summary(self,visible_foods,visible_seeds,ready_crop):
+        return{
+            "energy" : self.energy,
+            "food" : self.inventory['food'],
+            "crops" : self.inventory['crops'],
+            "seeds" : self.inventory['seeds'],
+            'visible_food' : len(visible_foods),
+            'visible_seeds' : len(visible_seeds),
+            "ready_crop": 1 if ready_crop else 0,
+            "in_plot": self.is_in_plot(self.x, self.y)
+            
+        }
+        
+        
+    def decide_goal(self, summary):
+    # keep current goal for some time
+     if self.goal_timer > 0:
+        self.goal_timer -= 1
+        return self.goal
+
+     energy = summary["energy"]
+     seeds = summary["seeds"]
+     crops = summary["crops"]
+     food = summary["food"]
+
+     if energy < 15:
+        self.goal = "survive"
+        self.goal_timer = 5
+
+     elif seeds < 3:
+        self.goal = "collect_seeds"
+        self.goal_timer = 10
+
+     elif crops < 200:
+        self.goal = "expand_farm"
+        self.goal_timer = 20
+
+     elif food < 10:
+        self.goal = "build_food_buffer"
+        self.goal_timer = 10
+
+     else:
+        self.goal = "maintain"
+        self.goal_timer = 15
+
+     return self.goal    
+ 
+ 
+    
     def get_ready_crop(self, crops):
      for pos in self.farm_memory:
         if pos in crops:
@@ -94,6 +146,7 @@ class Agent:
     def in_danger(self, dangers):
         return (self.x, self.y) in dangers   
     
+    #   [UNUSED]
     def get_ready_food(self,farms):
         for fx , fy in self.farm_memory:
             if (fx,fy) in farms:
@@ -103,7 +156,7 @@ class Agent:
                     return (fx, fy)
                 
         return None    
-    
+    #   [UNUSED]
     def danger_nearby_direction(self,dangers):
         if not dangers:
             return None
@@ -128,6 +181,8 @@ class Agent:
                 return "right" if dx > 0 else "left"
         else:
                 return "up" if dy > 0 else "down" 
+        
+        
         
     def get_direction(self,visible_foods):
         if not visible_foods:
@@ -155,7 +210,8 @@ class Agent:
                 return True
         return False    
               
-        
+       
+ #   [UNUSED]        
     def get_nearest_memory_food(self):
         if not self.memory:
            return None
@@ -243,10 +299,6 @@ class Agent:
     # + danger (0/1)
     # -------------------------
      state = energy_index * 10 + food_index * 2 + danger_near
-
-    # Optional debug
-    # print(f"{self.name} STATE: {state}")
-
      return state
         
     def learn(self,state,action,reward,next_state):
@@ -262,7 +314,8 @@ class Agent:
         print(
     Fore.MAGENTA +
     f"{self.name} Q Update | S:{state} A:{action} → {round(new_value,2)}"
-)
+       )
+        
         
         
     def choose_action(self,state):
@@ -282,7 +335,6 @@ class Agent:
         
     def update_mode(self):
       if self.energy < 10:
-          print("Panic Mode Set !!!!!")
           self.mode = "Panic"
           print(Fore.RED + f"{self.name} is panicing!!")
       else:
@@ -361,7 +413,8 @@ class Agent:
         print(Fore.LIGHTRED_EX + f"{self.name} hit wall!")
 
     # Energy cost
-     self.energy -= 1
+     self.energy -=1    
+     
 
      if self.energy == 0:
         print(Fore.LIGHTRED_EX + f"{self.name} died lmao")

@@ -57,6 +57,8 @@ episode_seeds = []
 # EPISODES
 # ===============================
 for episode in range(EPISODES):
+    
+    log_buffer.clear() 
 
     log(f"\n===== EPISODE {episode+1} =====")
 
@@ -80,13 +82,13 @@ for episode in range(EPISODES):
 
     # Reset agents
     for agent in agents:
-        # Spawn near agent's plot (fair start)
         px, py = agent.get_plot_target()
         agent.x = min(WORLD_WIDTH-1, max(0, px + random.randint(-3, 3)))
         agent.y = min(WORLD_HEIGHT-1, max(0, py + random.randint(-3, 3)))
         agent.energy = 25
         agent.memory = []
-        agent.inventory['seeds'] = 0
+        agent.inventory['seeds'] = 3
+        agent.inventory['food'] = 5
         agent.epsilon = max(0.05, agent.epsilon * 0.995)
 
     # ===============================
@@ -112,9 +114,13 @@ for episode in range(EPISODES):
 
         for agent in agents:
          if random.random() < 0.09:
-            sx = min(WORLD_WIDTH-1, max(0, agent.x + random.randint(-5,5)))
-            sy = min(WORLD_HEIGHT-1, max(0, agent.y + random.randint(-5,5)))
-            seeds.append((sx, sy))
+            sx = min(WORLD_WIDTH-1, max(0, agent.x + random.randint(-8,8)))
+            sy = min(WORLD_HEIGHT-1, max(0, agent.y + random.randint(-8,8)))
+        
+            if not agent.is_in_plot(sx, sy):
+                seeds.append((sx, sy))
+                break
+
 
         # Farm growth
         for pos in list(farms.keys()):
@@ -137,17 +143,38 @@ for episode in range(EPISODES):
             if agent.energy <= 0:
                 continue
             
-            if agent.energy < 10 and agent.inventory['food'] > 0:
+            if agent.energy < 10:
+                
+             if agent.inventory['food'] > 0:
                 agent.inventory['food'] -= 1
                 agent.energy += 10
-                log(f"{agent.name} ate from inventory")
+              
+
+             elif agent.inventory.get('crops', 0) > 0:
+                agent.inventory['crops'] -= 1
+                agent.energy += 7
+                
+        
+               
             
             visible_foods = agent.get_visible_food(foods)
             visible_seeds = agent.get_visible_food(seeds)
+            ready_crop = agent.get_ready_crop(crops)
+            
+            # Wealth-aware behavior
+            if agent.inventory['crops'] > 500:
+                ready_crop = None   # stop harvesting for a while
 
+            # FOOD BUFFER LOGIC
+            # ===============================
+            # If agent already has enough food, ignore random food
+            if agent.inventory['food'] >= 20:
+                visible_foods = []
+                
+                
             state = None
             Used_Rl = False
-
+           
             # =====================================================
             # PRIORITY 1: SURVIVAL
             # =====================================================
@@ -165,7 +192,7 @@ for episode in range(EPISODES):
                 elif agent.get_ready_crop(crops):
                     target = agent.get_ready_crop(crops)
                     action = agent.direction_to_target(target)
-                    log(f"{agent.name} PANIC → crop")
+                    
 
                 # 3) Inventory fallback
                 elif agent.inventory['food'] > 0:
@@ -182,11 +209,11 @@ for episode in range(EPISODES):
             # =====================================================
             # PRIORITY 2: HARVEST READY CROPS
             # =====================================================    
-            elif agent.get_ready_crop(crops):
-                target = agent.get_ready_crop(crops)
-                action = agent.direction_to_target(target)
+            
+            elif ready_crop:
+                action = agent.direction_to_target(ready_crop)
                 action = agent.avoid_danger(action, dangers)
-                log(f"{agent.name} going to harvest")
+                   
     
             # =====================================================
             # PRIORITY 3: COLLECT SEEDS
@@ -253,9 +280,10 @@ for episode in range(EPISODES):
                 and pos not in farms
                 and pos not in dangers
             ):
-                farms[pos] = {"timer":30, "owner":agent.name}
+                farms[pos] = {"timer":15, "owner":agent.name}
                 agent.inventory['seeds'] -= 1
                 agent.farm_memory.append(pos)
+                
                 reward += 2
 
             # Eat food
@@ -266,16 +294,20 @@ for episode in range(EPISODES):
                 reward += 25
                 episode_food_eaten += 1
 
-            # Harvest
-            if pos in crops and crops[pos] == agent.name:
+           # Harvest
+            if pos in crops and crops[pos] == agent.name:   
                 del crops[pos]
-                agent.inventory['food'] += 1
-                agent.energy += 10
+                agent.energy += 9
                 reward += 25
+                agent.inventory['crops'] +=1
                 episode_food_eaten += 1
                 
-            if pos in agent.farm_memory:
-             agent.farm_memory.remove(pos)    
+                
+            if agent.inventory['crops'] >= 3 and agent.inventory['food'] < 10:
+                    agent.inventory['crops'] -= 3
+                    agent.inventory['food'] += 2
+
+            
 
             # Danger
             if pos in dangers:
@@ -293,6 +325,9 @@ for episode in range(EPISODES):
         draw_world(agents, foods, farms, crops, episode+1, step+1, [], dangers)
 
     # Episode stats
+    for agent in agents:
+     log(f"{agent.name} | Food: {agent.inventory['food']} | Seeds: {agent.inventory['seeds']} | Crops: {agent.inventory['crops']} | Energy: {agent.energy}")
+
     alive = [a for a in agents if a.energy > 0]
     avg_energy = sum(a.energy for a in alive)/len(alive) if alive else 0
 
@@ -309,6 +344,10 @@ log_buffer.clear()
 # ===============================
 # RESULTS
 # ===============================
+for a in agents:
+    log(f"{a.name} inv : {a.inventory}")
+
+
 print(Fore.GREEN + "Simulation finished")
 
 episodes = list(range(1, EPISODES+1))
