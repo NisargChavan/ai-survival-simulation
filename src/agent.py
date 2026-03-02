@@ -22,6 +22,8 @@ class Agent:
         self.goal = "maintain"
         self.current_task = None
         self.goal_timer = 0
+        self.plan = []
+        self.current_goal_for_plan = None
 
         if self.name == "A":
             # Top-left
@@ -65,7 +67,14 @@ class Agent:
         self.inventory = {
             "food": 0,
             "seeds": 0,
-            "crops" : 0
+            "crops" : 0,
+            "woods" : 0,
+            "normal_farmer_tool" : 0,
+            "normal_farmer_tool_durability" : 0,
+            "special_farmer_tool" : 0,
+            "special_farmer_tool_durability" : 0,
+            "rare_crop" : 0
+            
         }
         self.danger_weight = danger_weight
         self.epsilon = epsilon
@@ -84,30 +93,93 @@ class Agent:
      )
 
 
-    def get_world_summary(self,visible_foods,visible_seeds,ready_crop):
+
+
+    def make_plan(self,goal):
+        
+        self.plan = []
+        self.current_goal_for_plan = goal
+        
+        if goal == "survive":
+            self.plan = ["find_food"] * 5
+        elif goal == "collect_seeds":
+            self.plan =  ["collect_seeds"] * 10
+        elif goal == "expand_farm":
+         self.plan = [
+            "go_to_plot",
+            "plant",
+            "plant",
+            "harvest"
+         ] * 3  
+         
+        elif goal == "build_food_buffer":
+            self.plan = ["find_food"] * 10
+        
+        elif goal == "collect_resource":
+            self.plan = ["find_wood"] * 10    
+            
+        else:  
+         self.plan = ["explore"] * 15    
+            
+   
+
+    def get_next_task(self, goal):
+
+    # If goal changed → new plan
+     if goal != self.current_goal_for_plan:
+        self.make_plan(goal)
+
+    # If plan finished → remake
+     if not self.plan:
+        self.make_plan(goal)
+
+     return self.plan.pop(0)
+ 
+
+    def get_world_summary(self,visible_foods,visible_seeds,ready_crop,visible_woods):
         return{
             "energy" : self.energy,
             "food" : self.inventory['food'],
             "crops" : self.inventory['crops'],
             "seeds" : self.inventory['seeds'],
+            "woods" : self.inventory['woods'],
+            "farmer_tool" : self.inventory['normal_farmer_tool'],
             'visible_food' : len(visible_foods),
             'visible_seeds' : len(visible_seeds),
+            'visible_woods' : len(visible_woods),
             "ready_crop": 1 if ready_crop else 0,
             "in_plot": self.is_in_plot(self.x, self.y)
             
         }
         
         
+    def log_state(self, step, goal, task):
+     return (
+        f"Step {step} | {self.name} | "
+        f"G:{goal} | T:{task} | "
+        f"Pos:({self.x},{self.y}) | "
+        f"E:{self.energy} | "
+        f"F:{self.inventory['food']} | "
+        f"S:{self.inventory['seeds']} | "
+        f"C:{self.inventory['crops']}"
+    )    
+        
     def decide_goal(self, summary):
-    # keep current goal for some time
+ 
+      
      if self.goal_timer > 0:
         self.goal_timer -= 1
-        return self.goal
+        return self.goal, False  
 
+     old_goal = self.goal
+
+     
      energy = summary["energy"]
      seeds = summary["seeds"]
      crops = summary["crops"]
      food = summary["food"]
+     woods = summary['woods']
+     normal_farmer_tool = self.inventory["normal_farmer_tool"]
 
      if energy < 15:
         self.goal = "survive"
@@ -116,22 +188,107 @@ class Agent:
      elif seeds < 3:
         self.goal = "collect_seeds"
         self.goal_timer = 10
+        
+     elif normal_farmer_tool== 0 and woods < 100:
+            self.goal = "collect_resource"
+            self.goal_timer = 15      
 
      elif crops < 200:
         self.goal = "expand_farm"
         self.goal_timer = 20
-
+            
+     elif crops > 400:
+      self.goal = "maintain"           
+         
      elif food < 10:
         self.goal = "build_food_buffer"
-        self.goal_timer = 10
+        self.goal_timer = 1
 
+     elif woods < 50:
+         self.goal = "collect_resource"
+         self.goal_timer = 20
+         
+          
      else:
         self.goal = "maintain"
         self.goal_timer = 15
+        
+     goal_changed = (old_goal != self.goal)
+     return self.goal, goal_changed  
+ 
+ 
+ 
+    def decide_task(self,goal,visible_foods,visible_seeds,ready_crop,visible_woods):
+      if goal == "survive":
+          if visible_foods:
+              return("move_to_food",min(
+                visible_foods,
+                key=lambda f: abs(self.x-f[0]) + abs(self.y-f[1])
+            ))
+          elif ready_crop:
+              return("harvest",ready_crop)
+          else:
+              return("explore",None)
+      elif goal == "collect_seeds":
+           if visible_seeds:
+            return ("move_to_seed", min(
+                visible_seeds,
+                key=lambda s: abs(self.x-s[0]) + abs(self.y-s[1])
+            ))
+           else:
+            return ("explore", None)       
+      elif goal == "collect_resource":
+            if visible_seeds:
+             return ("move_to_seed", min(
+                visible_seeds,
+                key=lambda s: abs(self.x-s[0]) + abs(self.y-s[1])
+            ))
+            else:
+             return ("explore", None)     
+      elif goal == "expand_farm":   
+          if ready_crop:
+              return("harvest",ready_crop)
+          elif self.inventory["seeds"] > 0:
+              if not self.is_in_plot(self.x , self.y):
+               return("go_to_plot",self.get_plot_target())
+              else:
+                  return("plant", None)
+          else:
+              return("collect_seeds", None)
+      
+      elif goal == "build_food_buffer":
+        if visible_foods:
+            return ("move_to_food", min(
+                visible_foods,
+                key=lambda f: abs(self.x-f[0]) + abs(self.y-f[1])
+            ))
+        else:
+            return ("explore", None)
 
-     return self.goal    
- 
- 
+      else:
+        if visible_foods:
+            return ("rl_food", None)
+        else:
+            return ("explore", None)   
+        
+    
+    
+    def task_to_action(self,task,target):
+        
+        if task in ["find_food", "collect_seeds", "harvest", "go_to_plot" , "find_wood"]:
+         if target:
+            return self.direction_to_target(target)
+         else:
+            return random.choice(["up","down","left","right"])
+
+        
+        if task == "plant":
+            return random.choice(["up","down","left","right"])  
+        
+        elif task == "explore":
+            state = self.get_state([], [])
+            return random.choice(["up","down","left","right"]) 
+      
     
     def get_ready_crop(self, crops):
      for pos in self.farm_memory:
@@ -195,7 +352,7 @@ class Agent:
         
         dx = fx - self.x
         dy = fy - self.y
-        print(Fore.LIGHTCYAN_EX + f"{dx} , {dy}")
+       
         
         if abs(dx) > abs(dy):
             return "right" if dx > 0 else "left"

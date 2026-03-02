@@ -1,13 +1,52 @@
 AI Survival World Run Log
-Run Time: 2026-03-01 20:36:30.535838
+Run Time: 2026-03-02 22:17:48.914997
 ====================================
 
 ===== EPISODE 1 =====
-A | Food: 0 | Seeds: 0 | Crops: 0 | Energy: 0
-B | Food: 10 | Seeds: 3 | Crops: 324 | Energy: 33
-C | Food: 10 | Seeds: 1 | Crops: 377 | Energy: 20
+A crafted a special farming tool at 8828 step!!
+A | Food: 26 | Seeds: 129 | Crops: 500 | Woods: 461 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 2 | Energy: 24
+B | Food: 0 | Seeds: 14 | Crops: 0 | Woods: 94 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 0
+C | Food: 20 | Seeds: 54 | Crops: 700 | Woods: 200 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 16
 
 ===== EPISODE 2 =====
-A | Food: 12 | Seeds: 5 | Crops: 299 | Energy: 31
-B | Food: 21 | Seeds: 1 | Crops: 789 | Energy: 21
-C | Food: 22 | Seeds: 0 | Crops: 881 | Energy: 56
+A crafted a special farming tool at 2454 step!!
+A crafted a special farming tool at 4706 step!!
+A crafted a special farming tool at 7455 step!!
+C crafted a special farming tool at 7587 step!!
+C crafted a special farming tool at 9456 step!!
+A | Food: 17 | Seeds: 422 | Crops: 1475 | Woods: 1882 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 19 | Energy: 15
+B | Food: 0 | Seeds: 0 | Crops: 0 | Woods: 64 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 0
+C | Food: 21 | Seeds: 97 | Crops: 1268 | Woods: 499 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 4 | Energy: 14
+
+===== EPISODE 3 =====
+A | Food: 20 | Seeds: 30 | Crops: 1783 | Woods: 97 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 27
+B | Food: 20 | Seeds: 33 | Crops: 481 | Woods: 25 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 17
+C | Food: 45 | Seeds: 11 | Crops: 1768 | Woods: 16 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 13
+
+===== EPISODE 4 =====
+A | Food: 22 | Seeds: 26 | Crops: 2191 | Woods: 54 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 12
+B | Food: 20 | Seeds: 26 | Crops: 885 | Woods: 33 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 32
+C | Food: 20 | Seeds: 34 | Crops: 2174 | Woods: 64 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 16
+
+===== EPISODE 5 =====
+A crafted a special farming tool at 2957 step!!
+A crafted a special farming tool at 6211 step!!
+B crafted a special farming tool at 7095 step!!
+A crafted a special farming tool at 7605 step!!
+A crafted a special farming tool at 9524 step!!
+B crafted a special farming tool at 9588 step!!
+A | Food: 22 | Seeds: 43 | Crops: 3469 | Woods: 506 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 22 | Energy: 23
+B | Food: 20 | Seeds: 82 | Crops: 1521 | Woods: 249 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 8 | Energy: 20
+C | Food: 21 | Seeds: 0 | Crops: 2611 | Woods: 76 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 99
+
+===== EPISODE 6 =====
+A crafted a special farming tool at 2844 step!!
+A crafted a special farming tool at 8474 step!!
+A | Food: 20 | Seeds: 195 | Crops: 4003 | Woods: 1011 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 11 | Energy: 97
+B | Food: 20 | Seeds: 6 | Crops: 2160 | Woods: 61 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 90
+C | Food: 19 | Seeds: 34 | Crops: 3006 | Woods: 45 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 15
+
+===== EPISODE 7 =====
+A | Food: 21 | Seeds: 29 | Crops: 4411 | Woods: 55 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 24
+B | Food: 26 | Seeds: 12 | Crops: 2460 | Woods: 91 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 42
+C | Food: 25 | Seeds: 5 | Crops: 3449 | Woods: 2 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 | Energy: 82

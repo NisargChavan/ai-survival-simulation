@@ -65,10 +65,12 @@ for episode in range(EPISODES):
     episode_reward = 0
     episode_food_eaten = 0
     episode_seeds_collected = 0
+    episode_woods_collected = 0
 
     # Reset world
     foods = []
     seeds = []
+    woods = []
     dangers = []
     farms = {}
     crops = {}
@@ -88,7 +90,15 @@ for episode in range(EPISODES):
         agent.energy = 25
         agent.memory = []
         agent.inventory['seeds'] = 3
-        agent.inventory['food'] = 5
+        agent.inventory['food'] = 8
+        agent.inventory['woods'] = 0
+        agent.inventory['special_farmer_tool'] = 0
+        agent.inventory['normal_farmer_tool'] = 0
+        agent.inventory['normal_farmer_tool_durability'] = 0
+        agent.inventory['special_farmer_tool_durability'] = 0
+        agent.inventory['rare_crop'] = 0
+        
+        
         agent.epsilon = max(0.05, agent.epsilon * 0.995)
 
     # ===============================
@@ -104,10 +114,25 @@ for episode in range(EPISODES):
 
         # Spawn resources
         if random.random() < 0.7:
-             fx = random.randint(0,WORLD_WIDTH-1)
-             fy = random.randint(0,WORLD_HEIGHT-1)
-             if not len(foods) > 50:
-              foods.append((fx,fy))
+            fx = random.randint(0, WORLD_WIDTH-1)
+            fy = random.randint(0, WORLD_HEIGHT-1)
+
+           # Check if inside any agent plot
+            in_any_plot = False
+            for ag in agents:
+                if ag.is_in_plot(fx, fy):
+                    in_any_plot = True
+                    break
+
+            # Spawn only if not inside plot and limit not exceeded
+            if not in_any_plot and len(foods) < 50:
+                foods.append((fx, fy))
+        
+        #wood spawn
+        if random.random() <0.9:
+            fx = random.randint(0,WORLD_WIDTH-1)
+            fy = random.randint(0,WORLD_HEIGHT-1)
+            woods.append((fx,fy))      
               
               
              
@@ -154,11 +179,28 @@ for episode in range(EPISODES):
                 agent.inventory['crops'] -= 1
                 agent.energy += 7
                 
+             
+            # Auto craft tool if none 
+            if agent.inventory["special_farmer_tool"] == 0 and agent.inventory["woods"] >= 300:
+                agent.inventory["woods"] -= 300
+                agent.inventory["special_farmer_tool"] += 1
+                log(f"{agent.name} crafted a special farming tool at {step} step!!")
+                agent.inventory["special_farmer_tool_durability"] = 100       
+                
+                
+            if agent.inventory["normal_farmer_tool"] == 0 and agent.inventory["woods"] >= 100:
+                agent.inventory["woods"] -= 100
+                agent.inventory["normal_farmer_tool"] += 1
+                agent.inventory["normal_famrer_tool_durability"] = 30  
+                
+                 
         
-               
+                 
             
             visible_foods = agent.get_visible_food(foods)
             visible_seeds = agent.get_visible_food(seeds)
+            visible_woods = agent.get_visible_food(woods)
+            
             ready_crop = agent.get_ready_crop(crops)
             
             # Wealth-aware behavior
@@ -175,94 +217,51 @@ for episode in range(EPISODES):
             state = None
             Used_Rl = False
            
-            # =====================================================
-            # PRIORITY 1: SURVIVAL
-            # =====================================================
-            if agent.energy < 10:
-
-                 # 1) Visible food
-                if visible_foods:
-                    target = min(
-                        visible_foods,
-                        key=lambda f: abs(agent.x-f[0]) + abs(agent.y-f[1])
-                    )
-                    action = agent.direction_to_target(target)
-
-                # 2) Own ready crop
-                elif agent.get_ready_crop(crops):
-                    target = agent.get_ready_crop(crops)
-                    action = agent.direction_to_target(target)
-                    
-
-                # 3) Inventory fallback
-                elif agent.inventory['food'] > 0:
-                    agent.inventory['food'] -= 1
-                    agent.energy += 10
-                    continue
-
-                # 4) Last resort
-                else:
-                    action = random.choice(["up","down","left","right"])
-
-                action = agent.avoid_danger(action, dangers)
-
-            # =====================================================
-            # PRIORITY 2: HARVEST READY CROPS
-            # =====================================================    
+            summary = agent.get_world_summary(visible_foods,visible_seeds,ready_crop,visible_woods)
+            goal , goal_changed = agent.decide_goal(summary)             
+            task = agent.get_next_task(goal)
             
-            elif ready_crop:
-                action = agent.direction_to_target(ready_crop)
-                action = agent.avoid_danger(action, dangers)
-                   
-    
-            # =====================================================
-            # PRIORITY 3: COLLECT SEEDS
-            # =====================================================
-            elif visible_seeds and agent.inventory['seeds'] < 5:
+            target = None
 
+            if task == "find_food" and visible_foods:
+                target = min(
+                    visible_foods,
+                    key=lambda f: abs(agent.x-f[0]) + abs(agent.y-f[1])
+                )
+            elif task == "collect_seeds" and visible_seeds:
                 target = min(
                     visible_seeds,
                     key=lambda s: abs(agent.x-s[0]) + abs(agent.y-s[1])
                 )
-                action = agent.direction_to_target(target)
-                action = agent.avoid_danger(action, dangers)
+            elif task == "harvest":
+                target = ready_crop
+
+            elif task == "go_to_plot":
+                target = agent.get_plot_target()
                 
-            
-            # =====================================================
-            # PRIORITY 4: GO TO PLOT
-            # =====================================================
-            elif agent.inventory['seeds'] > 4:
-
-                if not agent.is_in_plot(agent.x, agent.y):
-                    target = agent.get_plot_target()
-                    action = agent.direction_to_target(target)
-                else:
-                    action = random.choice(["up","down","left","right"])
-
-                action = agent.avoid_danger(action, dangers)
-
-            # =====================================================
-            # PRIORITY 5: NORMAL RL FOOD
-            # =====================================================
-            elif visible_foods:
-
+            elif task == "find_wood" and visible_woods:
+                target = min(
+                    visible_woods,
+                    key=lambda f: abs(agent.x-f[0]) + abs(agent.y-f[1])
+                )
+                    
+                
+                      
+            if task in ["explore", "find_food", "find_wood", "collect_seeds"] and target is None:
                 state = agent.get_state(visible_foods, dangers)
                 action = agent.choose_action(state)
-                action = agent.avoid_danger(action, dangers)
                 Used_Rl = True
-
-            # =====================================================
-            # PRIORITY 6: EXPLORE
-            # =====================================================
             else:
-                action = random.choice(["up","down","left","right"])
-                action = agent.avoid_danger(action, dangers)
+                action = agent.task_to_action(task, target)
 
+            action = agent.avoid_danger(action, dangers)
+            
             # ===============================
             # MOVE
             # ===============================
             reward = -1
             hit_wall = agent.move(action)
+            
 
             pos = (agent.x, agent.y)
 
@@ -273,6 +272,12 @@ for episode in range(EPISODES):
                 episode_seeds_collected += 1
                 reward += 1
 
+            if pos in woods:
+                woods.remove(pos)
+                agent.inventory['woods'] +=1
+                episode_woods_collected +=1
+                reward +=1
+            
             # Plant
             if (
                 agent.inventory['seeds'] > 0
@@ -297,14 +302,46 @@ for episode in range(EPISODES):
            # Harvest
             if pos in crops and crops[pos] == agent.name:   
                 del crops[pos]
-                agent.energy += 9
+                
+                energy_gain = 9
+                crop_gain = 1
+                
+                            
+                if agent.inventory.get("special_farmer_tool" , 0) > 0:
+                     crop_gain = 4
+                     energy_gain = 10
+                     agent.inventory["special_farmer_tool_durability"] -= 1
+                    
+                     if random.random() < 0.05:
+                        agent.inventory["rare_crop"] += 1
+                        
+                     
+                     if agent.inventory["special_farmer_tool_durability"] <= 0:
+                         agent.inventory["special_farmer_tool"] = 0  
+                     
+                
+                
+                elif agent.inventory.get("normal_farmer_tool", 0) > 0:
+                     crop_gain = 2
+                     energy_gain = 8
+                     agent.inventory["normal_farmer_tool_durability"] -= 1
+                     
+                     if agent.inventory["normal_farmer_tool_durability"] <= 0:
+                         agent.inventory["normal_farmer_tool"] = 0
+                         
+             
+                             
+                                
+                agent.energy += energy_gain
+                agent.energy = min(agent.energy, 100)
+                
                 reward += 25
-                agent.inventory['crops'] +=1
+                agent.inventory['crops'] +=crop_gain
                 episode_food_eaten += 1
                 
                 
-            if agent.inventory['crops'] >= 3 and agent.inventory['food'] < 10:
-                    agent.inventory['crops'] -= 3
+            if agent.inventory['crops'] >= 5 and agent.inventory['food'] < 10:
+                    agent.inventory['crops'] -= 5
                     agent.inventory['food'] += 2
 
             
@@ -322,11 +359,11 @@ for episode in range(EPISODES):
                 agent.learn(state, action, reward, next_state)
 
         # Draw world
-        draw_world(agents, foods, farms, crops, episode+1, step+1, [], dangers)
+        draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers)
 
     # Episode stats
     for agent in agents:
-     log(f"{agent.name} | Food: {agent.inventory['food']} | Seeds: {agent.inventory['seeds']} | Crops: {agent.inventory['crops']} | Energy: {agent.energy}")
+     log(f"{agent.name} | Food: {agent.inventory['food']} | Seeds: {agent.inventory['seeds']} | Crops: {agent.inventory['crops']} | Woods: {agent.inventory['woods']} | Normal Farmer Tool: {agent.inventory['normal_farmer_tool']} | Special Farmer Tool: {agent.inventory['special_farmer_tool']} | Rare Crop : {agent.inventory['rare_crop']} | Energy: {agent.energy}")
 
     alive = [a for a in agents if a.energy > 0]
     avg_energy = sum(a.energy for a in alive)/len(alive) if alive else 0

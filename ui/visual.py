@@ -44,6 +44,9 @@ grass_img = pygame.transform.scale(grass_img, (CELL_SIZE, CELL_SIZE))
 seed_img = pygame.image.load(os.path.join(ASSET_PATH, "seeds.png"))
 seed_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
 
+wood_img = pygame.image.load(os.path.join(ASSET_PATH, "woods.png"))
+wood_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
+
 crop_img = pygame.image.load(os.path.join(ASSET_PATH, "crop.png"))
 crop_img = pygame.transform.scale(crop_img, (CELL_SIZE, CELL_SIZE))
 
@@ -70,7 +73,7 @@ AGENT_COLORS = {
 # ===============================
 # DRAW WORLD
 # ===============================
-def draw_world(agents, foods, farms, crops, episode, step, energy_packs, dangers):
+def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, dangers):
 
     # ---- Grass Background ----
     for x in range(WORLD_WIDTH):
@@ -106,6 +109,10 @@ def draw_world(agents, foods, farms, crops, episode, step, energy_packs, dangers
     # ---- Farms (growing) ----
     for (fx, fy), farm in farms.items():
         screen.blit(seed_img, (fx * CELL_SIZE, fy * CELL_SIZE))
+        
+        
+    # for (fx, fy), woods in woods:
+    #     screen.blit(wood_img, (fx * CELL_SIZE, fy * CELL_SIZE))    
 
     # ---- Crops (ready) ----
     for (fx, fy), owner in crops.items():
@@ -164,4 +171,4 @@ def draw_world(agents, foods, farms, crops, episode, step, energy_packs, dangers
     screen.blit(step_text, (10, 30))
 
     pygame.display.flip()
-    clock.tick(300)
+    clock.tick(700)
