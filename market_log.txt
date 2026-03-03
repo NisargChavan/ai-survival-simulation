@@ -1,0 +1,15 @@
+AI Survival World - Market Log
+====================================
+
+
+===== EPISODE 2 TRADE HISTORY =====
+Step 250 | C → A | woods x2 @ 7.56
+Step 300 | C → A | woods x1 @ 6.31
+Step 500 | B → A | woods x1 @ 2.87
+=============================================
+
+===== EPISODE 3 TRADE HISTORY =====
+Step 350 | B → A | woods x3 @ 6.84
+Step 1150 | B → A | woods x1 @ 3.21
+Step 4600 | B → C | woods x3 @ 3.19
+=============================================

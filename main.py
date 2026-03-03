@@ -8,9 +8,61 @@ import pygame
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from src.market import Market
+
+MARKET_INTERVAL = 50
 
 sns.set(style="darkgrid")
 init(autoreset=True)
+
+
+def attempt_trade(a, b):
+
+    if a.trade_cooldown > 0 or b.trade_cooldown > 0:
+        return
+
+    status_a = a.get_trade_status()
+    status_b = b.get_trade_status()
+
+
+    trade_amount = 5
+
+    # Case 1: A needs wood, B has wood, A has crops
+    if (
+        status_a["has_extra_crops"]
+        and status_a["needs_wood"]
+        and status_b["has_extra_wood"]
+    ):
+        a.inventory["crops"] -= trade_amount
+        b.inventory["crops"] += trade_amount
+
+        b.inventory["woods"] -= trade_amount
+        a.inventory["woods"] += trade_amount
+
+        a.trade_cooldown = 10
+        b.trade_cooldown = 10
+
+        log(f"TRADE: {a.name} → {b.name} (crops for wood)")
+
+    # Case 2: reverse
+    elif (
+        status_b["has_extra_crops"]
+        and status_b["needs_wood"]
+        and status_a["has_extra_wood"]
+    ):
+        b.inventory["crops"] -= trade_amount
+        a.inventory["crops"] += trade_amount
+
+        a.inventory["woods"] -= trade_amount
+        b.inventory["woods"] += trade_amount
+
+        a.trade_cooldown = 10
+        b.trade_cooldown = 10
+
+        log(f"TRADE: {b.name} → {a.name} (crops for wood)")
+
+
+
 
 # ===============================
 # CONFIG
@@ -24,7 +76,13 @@ STEPS_PER_EPISODE = 10000
 # LOG SETUP
 # ===============================
 LOG_FILE = "run_log.txt"
+MARKET_LOG_FILE = "market_log.txt"
 log_buffer = []
+
+with open(MARKET_LOG_FILE, "w") as f:
+    f.write("AI Survival World - Market Log\n")
+    f.write("====================================\n\n")
+
 
 with open(LOG_FILE, "w") as f:
     f.write("AI Survival World Run Log\n")
@@ -59,6 +117,7 @@ episode_seeds = []
 for episode in range(EPISODES):
     
     log_buffer.clear() 
+    market = Market()
 
     log(f"\n===== EPISODE {episode+1} =====")
 
@@ -66,6 +125,10 @@ for episode in range(EPISODES):
     episode_food_eaten = 0
     episode_seeds_collected = 0
     episode_woods_collected = 0
+    episode_normal_tool_crafted = 0
+    episode_speical_tool_crafted = 0
+    
+    
 
     # Reset world
     foods = []
@@ -74,6 +137,12 @@ for episode in range(EPISODES):
     dangers = []
     farms = {}
     crops = {}
+    
+    
+    for agent in agents:
+        agent.role = random.choice(["farmer", "lumberjack", "balanced"])
+        log(f"{agent.name} starts as {agent.role}")
+        print(f"{agent.name} starts as {agent.role}")
 
     # Danger zones
     for _ in range(5):
@@ -88,6 +157,7 @@ for episode in range(EPISODES):
         agent.x = min(WORLD_WIDTH-1, max(0, px + random.randint(-3, 3)))
         agent.y = min(WORLD_HEIGHT-1, max(0, py + random.randint(-3, 3)))
         agent.energy = 25
+        agent.money = 25
         agent.memory = []
         agent.inventory['seeds'] = 3
         agent.inventory['food'] = 8
@@ -97,6 +167,7 @@ for episode in range(EPISODES):
         agent.inventory['normal_farmer_tool_durability'] = 0
         agent.inventory['special_farmer_tool_durability'] = 0
         agent.inventory['rare_crop'] = 0
+    
         
         
         agent.epsilon = max(0.05, agent.epsilon * 0.995)
@@ -106,6 +177,9 @@ for episode in range(EPISODES):
     # ===============================
     for step in range(STEPS_PER_EPISODE):
         
+       
+        
+       
         
         if all(agent.energy <= 0 for agent in agents):
             print(f"Episode {episode+1}: All agents died at step {step}")
@@ -129,16 +203,78 @@ for episode in range(EPISODES):
                 foods.append((fx, fy))
         
         #wood spawn
-        if random.random() <0.9:
-            fx = random.randint(0,WORLD_WIDTH-1)
-            fy = random.randint(0,WORLD_HEIGHT-1)
-            woods.append((fx,fy))      
-              
-              
+        if random.random() < 0.7:
+             fx = random.randint(0, WORLD_WIDTH-1)
+             fy = random.randint(0, WORLD_HEIGHT-1)
+
+           # Check if inside any agent plot
+             in_any_plot = False
+             for ag in agents:
+                if ag.is_in_plot(fx, fy):
+                    in_any_plot = True
+                    break
+
+            # Spawn only if not inside plot and limit not exceeded
+             if not in_any_plot and len(woods) < 70:
+                woods.append((fx, fy))
+        
+        
+        #Market
+        snapshot = market.get_market_trade_history()
+                
+       
+        if step % MARKET_INTERVAL == 0:            
+         for agent in agents:
+           if agent.energy <= 0:
+                continue
+            
+            
+
+           agent.submitted_buy = False
+           agent.submitted_sell = False
+
+           wood_price = market.prices["woods"]
+           crop_price = market.prices["crops"]
+
+        # ---------- SELL LOGIC ----------
+           if (agent.inventory["crops"] > 30 and crop_price > market.base_price['crops'] * 0.8 and  not agent.submitted_sell):
+            market.sumbit_sell_order(agent, "crops", 5)
+            agent.submitted_sell = True
+
+           elif (agent.inventory["woods"] > 50 and wood_price > market.base_price['woods'] * 0.8 and not agent.submitted_sell):
+            market.sumbit_sell_order(agent, "woods", 5)
+            agent.submitted_sell = True
+
+
+        # ---------- BUY LOGIC ----------
+            if ((agent.inventory["food"] < 8 or crop_price < market.base_price["crops"])  and not agent.submitted_buy):
+           
+             market.sumbit_buy_order(agent, "crops", 3)
+             agent.submitted_buy = True
+
+           elif ((agent.inventory["woods"] < 20 or
+               wood_price < market.base_price["woods"])
+              and not agent.submitted_buy):
+
+            market.sumbit_buy_order(agent, "woods", 3)
+            agent.submitted_buy = True
+
+
+         market.current_step = step
+         market.clear_market()
+       
+        
+        if step % MARKET_INTERVAL == 0:
+                    print(
+                        f"[Market] Step {step} | "
+                        f"Crops: {market.prices['crops']:.2f} | "
+                        f"Woods: {market.prices['woods']:.2f}"
+                    )       
+                                    
              
 
         for agent in agents:
-         if random.random() < 0.09:
+         if random.random() < 0.7:
             sx = min(WORLD_WIDTH-1, max(0, agent.x + random.randint(-8,8)))
             sy = min(WORLD_HEIGHT-1, max(0, agent.y + random.randint(-8,8)))
         
@@ -165,6 +301,10 @@ for episode in range(EPISODES):
         # ===============================
         for agent in agents:
 
+            if agent.trade_cooldown > 0:
+              agent.trade_cooldown -= 1
+
+
             if agent.energy <= 0:
                 continue
             
@@ -184,14 +324,16 @@ for episode in range(EPISODES):
             if agent.inventory["special_farmer_tool"] == 0 and agent.inventory["woods"] >= 300:
                 agent.inventory["woods"] -= 300
                 agent.inventory["special_farmer_tool"] += 1
+                episode_speical_tool_crafted +=1
                 log(f"{agent.name} crafted a special farming tool at {step} step!!")
                 agent.inventory["special_farmer_tool_durability"] = 100       
                 
                 
-            if agent.inventory["normal_farmer_tool"] == 0 and agent.inventory["woods"] >= 100:
+            if agent.inventory["normal_farmer_tool"] == 0 and agent.inventory["woods"] >=200:
                 agent.inventory["woods"] -= 100
                 agent.inventory["normal_farmer_tool"] += 1
-                agent.inventory["normal_famrer_tool_durability"] = 30  
+                episode_normal_tool_crafted += 1
+                agent.inventory["normal_farmer_tool_durability"] = 30  
                 
                  
         
@@ -277,6 +419,7 @@ for episode in range(EPISODES):
                 agent.inventory['woods'] +=1
                 episode_woods_collected +=1
                 reward +=1
+                
             
             # Plant
             if (
@@ -328,15 +471,14 @@ for episode in range(EPISODES):
                      
                      if agent.inventory["normal_farmer_tool_durability"] <= 0:
                          agent.inventory["normal_farmer_tool"] = 0
-                         
-             
-                             
-                                
+                     
+                                                     
                 agent.energy += energy_gain
                 agent.energy = min(agent.energy, 100)
                 
                 reward += 25
                 agent.inventory['crops'] +=crop_gain
+            
                 episode_food_eaten += 1
                 
                 
@@ -357,13 +499,45 @@ for episode in range(EPISODES):
                 next_visible = agent.get_visible_food(foods)
                 next_state = agent.get_state(next_visible, dangers)
                 agent.learn(state, action, reward, next_state)
+                
+                
+            # ===============================
+# TRADING PHASE 
+# ===============================
+        for i in range(len(agents)):
+                for j in range(i + 1, len(agents)):
+                    a = agents[i]
+                    b = agents[j]
+                   
+                    if a.energy <= 0 or b.energy <= 0:
+                        continue
+
+                    distance = abs(a.x - b.x) + abs(a.y - b.y)
+
+                    if distance <= 4:
+                        attempt_trade(a, b)    
 
         # Draw world
         draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers)
+        
+    if market.episode_history:
+         with open("market_log.txt", "a" , encoding="utf-8") as f:
+            f.write(f"\n===== EPISODE {episode+1} TRADE HISTORY =====\n")
+
+            for trade in market.episode_history:
+                f.write(
+                f"Step {trade['step']} | "
+                f"{trade['seller']} → {trade['buyer']} | "
+                f"{trade['item']} x{trade['quantity']} "
+                f"@ {trade['price']}\n"
+            )
+
+            f.write("=============================================\n")
 
     # Episode stats
     for agent in agents:
-     log(f"{agent.name} | Food: {agent.inventory['food']} | Seeds: {agent.inventory['seeds']} | Crops: {agent.inventory['crops']} | Woods: {agent.inventory['woods']} | Normal Farmer Tool: {agent.inventory['normal_farmer_tool']} | Special Farmer Tool: {agent.inventory['special_farmer_tool']} | Rare Crop : {agent.inventory['rare_crop']} | Energy: {agent.energy}")
+     log(f"{agent.name} Role: {agent.role}")
+     log(f"{agent.name} Money : {agent.money} | Food: {agent.inventory['food']} | Seeds: {agent.inventory['seeds']} | Crops: {agent.inventory['crops']} | Woods: {agent.inventory['woods']} | Normal Farmer Tool: {agent.inventory['normal_farmer_tool']} | Special Farmer Tool: {agent.inventory['special_farmer_tool']} | Rare Crop : {agent.inventory['rare_crop']} |Normal tool : {episode_normal_tool_crafted}|Special tool : {episode_speical_tool_crafted}| Seeds collected : {episode_seeds_collected} |Energy: {agent.energy}")
 
     alive = [a for a in agents if a.energy > 0]
     avg_energy = sum(a.energy for a in alive)/len(alive) if alive else 0

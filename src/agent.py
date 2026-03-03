@@ -11,19 +11,28 @@ class Agent:
         self.x = random.randint(0, world_width - 1)
         self.y = random.randint(0, world_height - 1)
         self.energy = 25
+        self.money = 25
         self.action = ""   
         self.memory = []
         self.visited = []
+        self.agent_order_count = {}
         self.farm_memory = []
-        self.plot_size = 15
-        self.plot_size = 15
         self.plot_size = 15
         half = self.plot_size // 2
         self.goal = "maintain"
         self.current_task = None
         self.goal_timer = 0
+        if self.name == "A":
+         self.wood_target = 30
+        elif self.name == "B":
+         self.wood_target = 80
+        else:
+         self.wood_target = 50
         self.plan = []
         self.current_goal_for_plan = None
+        self.trade_cooldown = 0
+        self.role = "generalist"
+        self.role_timer = 0
 
         if self.name == "A":
             # Top-left
@@ -83,6 +92,16 @@ class Agent:
         
     
     
+        
+    
+    def get_trade_status(self):
+     return {
+        "needs_wood": self.inventory["woods"] < 20,
+        "needs_food": self.inventory["food"] < 5,
+        "has_extra_crops": self.inventory["crops"] > 30,
+        "has_extra_wood": self.inventory["woods"] > 30
+    }
+    
     def is_in_plot(self, x, y):
      cx, cy = self.plot_center
      half = self.plot_size // 2
@@ -93,7 +112,7 @@ class Agent:
      )
 
 
-
+    
 
     def make_plan(self,goal):
         
@@ -165,58 +184,54 @@ class Agent:
     )    
         
     def decide_goal(self, summary):
- 
-      
-     if self.goal_timer > 0:
-        self.goal_timer -= 1
-        return self.goal, False  
 
-     old_goal = self.goal
+        energy = summary["energy"]
+        food = summary["food"]
+        crops = summary["crops"]
+        woods = summary["woods"]
 
-     
-     energy = summary["energy"]
-     seeds = summary["seeds"]
-     crops = summary["crops"]
-     food = summary["food"]
-     woods = summary['woods']
-     normal_farmer_tool = self.inventory["normal_farmer_tool"]
+        # Absolute survival override
+        if energy < 10:
+            self.goal = "survive"
+            return self.goal, False
 
-     if energy < 15:
-        self.goal = "survive"
-        self.goal_timer = 5
-
-     elif seeds < 3:
-        self.goal = "collect_seeds"
-        self.goal_timer = 10
+        utilities = {}
         
-     elif normal_farmer_tool== 0 and woods < 100:
-            self.goal = "collect_resource"
-            self.goal_timer = 15      
+        if food < 5:
+            self.goal = "build_food_buffer"
+            return self.goal, False
 
-     elif crops < 200:
-        self.goal = "expand_farm"
-        self.goal_timer = 20
-            
-     elif crops > 400:
-      self.goal = "maintain"           
-         
-     elif food < 10:
-        self.goal = "build_food_buffer"
-        self.goal_timer = 1
+        # Survival pressure
+        utilities["survive"] = max(0, 20 - energy) * 3
 
-     elif woods < 50:
-         self.goal = "collect_resource"
-         self.goal_timer = 20
-         
-          
-     else:
-        self.goal = "maintain"
-        self.goal_timer = 15
-        
-     goal_changed = (old_goal != self.goal)
-     return self.goal, goal_changed  
- 
- 
+        # Food pressure
+        utilities["build_food_buffer"] = max(0, 40 - food) * 4
+
+        # Crop pressure
+        crop_weight = 1
+        if self.role == "farmer":
+            crop_weight = 3
+        elif self.role == "balanced":
+            crop_weight =  1.5
+
+        utilities["expand_farm"] = max(0, 400 - crops) * crop_weight
+
+        # Wood pressure
+        wood_weight = 1
+        if self.role == "lumberjack":
+            wood_weight = 3
+        elif self.role == "balanced":
+            wood_weight = 1.5
+
+        utilities["collect_resource"] = max(0, 280 - woods) * wood_weight
+
+        utilities["maintain"] = 10
+
+        # Pick highest utility
+        self.goal = max(utilities, key=utilities.get)
+
+        return self.goal, False
+    
  
     def decide_task(self,goal,visible_foods,visible_seeds,ready_crop,visible_woods):
       if goal == "survive":
@@ -468,10 +483,10 @@ class Agent:
         )
         
         self.q_table[state][action] = new_value
-        print(
-    Fore.MAGENTA +
-    f"{self.name} Q Update | S:{state} A:{action} → {round(new_value,2)}"
-       )
+    #    
+    
+    
+    
         
         
         
@@ -481,11 +496,11 @@ class Agent:
         
         if random.random() < self.epsilon:
             action = random.choice(actions)
-            print(Fore.BLUE + f"{self.name} exploring (RL) → {action}")
+           # print(Fore.BLUE + f"{self.name} exploring (RL) → {action}")
             return action
         
         action = max(self.q_table[state],key= self.q_table[state].get)
-        print(Fore.GREEN + f"{self.name} exploiting (RL) → {action}")
+      #  print(Fore.GREEN + f"{self.name} exploiting (RL) → {action}")
         return action
 
     
@@ -566,8 +581,7 @@ class Agent:
     # Check if position didn't change → hit wall
      hit_wall = (self.x == old_x and self.y == old_y)
 
-     if hit_wall:
-        print(Fore.LIGHTRED_EX + f"{self.name} hit wall!")
+
 
     # Energy cost
      self.energy -=1    

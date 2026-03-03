@@ -45,7 +45,7 @@ seed_img = pygame.image.load(os.path.join(ASSET_PATH, "seeds.png"))
 seed_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
 
 wood_img = pygame.image.load(os.path.join(ASSET_PATH, "woods.png"))
-wood_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
+wood_img = pygame.transform.scale(wood_img, (CELL_SIZE, CELL_SIZE))
 
 crop_img = pygame.image.load(os.path.join(ASSET_PATH, "crop.png"))
 crop_img = pygame.transform.scale(crop_img, (CELL_SIZE, CELL_SIZE))
@@ -111,8 +111,8 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
         screen.blit(seed_img, (fx * CELL_SIZE, fy * CELL_SIZE))
         
         
-    # for (fx, fy), woods in woods:
-    #     screen.blit(wood_img, (fx * CELL_SIZE, fy * CELL_SIZE))    
+    for fx, fy in woods:
+     screen.blit(wood_img, (fx * CELL_SIZE, fy * CELL_SIZE)) 
 
     # ---- Crops (ready) ----
     for (fx, fy), owner in crops.items():
@@ -171,4 +171,4 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
     screen.blit(step_text, (10, 30))
 
     pygame.display.flip()
-    clock.tick(700)
+    clock.tick(900)
