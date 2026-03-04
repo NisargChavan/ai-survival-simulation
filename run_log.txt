@@ -1,39 +1,26 @@
 AI Survival World Run Log
-Run Time: 2026-03-03 22:33:08.545801
+Run Time: 2026-03-04 16:49:42.180699
 ====================================
 
 ===== EPISODE 1 =====
 A starts as farmer
-B starts as farmer
+B starts as lumberjack
 C starts as balanced
-All agents died at step 3801
+All agents died at step 1422
 A Role: farmer
-A Money : 25 | Food: 0 | Seeds: 0 | Crops: 0 | Woods: 1 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 0|Special tool : 0| Seeds collected : 291 |Energy: 0
-B Role: farmer
-B Money : 25 | Food: 0 | Seeds: 24 | Crops: 0 | Woods: 42 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 0|Special tool : 0| Seeds collected : 291 |Energy: 0
+A Money : 36.76395512407069 | Food: 0 | Seeds: 0 | Crops: 0 | Woods: 15 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
+B Role: lumberjack
+B Money : 37.98050565083016 | Food: 0 | Seeds: 190 | Crops: 0 | Woods: 314 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
 C Role: balanced
-C Money : 25 | Food: 0 | Seeds: 0 | Crops: 0 | Woods: 0 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 0|Special tool : 0| Seeds collected : 291 |Energy: 0
+C Money : 0.25553922509914573 | Food: 0 | Seeds: 25 | Crops: 0 | Woods: 5 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
 
 ===== EPISODE 2 =====
-A starts as balanced
-B starts as lumberjack
-C starts as lumberjack
-C crafted a special farming tool at 7717 step!!
-A Role: balanced
-A Money : 0.6936295715684762 | Food: 9 | Seeds: 0 | Crops: 3 | Woods: 37 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 21|Special tool : 1| Seeds collected : 6936 |Energy: 48
-B Role: lumberjack
-B Money : 27.87367496176485 | Food: 84 | Seeds: 2503 | Crops: 923 | Woods: 278 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 21|Special tool : 1| Seeds collected : 6936 |Energy: 10
-C Role: lumberjack
-C Money : 46.43269546666667 | Food: 39 | Seeds: 2358 | Crops: 991 | Woods: 289 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 4 |Normal tool : 21|Special tool : 1| Seeds collected : 6936 |Energy: 12
-
-===== EPISODE 3 =====
 A starts as farmer
-B starts as farmer
-C starts as lumberjack
-C crafted a special farming tool at 4455 step!!
+B starts as lumberjack
+C starts as balanced
 A Role: farmer
-A Money : 1.2755256750631059 | Food: 11 | Seeds: 0 | Crops: 17 | Woods: 34 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 18|Special tool : 1| Seeds collected : 6825 |Energy: 19
-B Role: farmer
-B Money : 58.28959916939815 | Food: 47 | Seeds: 2671 | Crops: 1436 | Woods: 280 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 18|Special tool : 1| Seeds collected : 6825 |Energy: 9
-C Role: lumberjack
-C Money : 15.434875155538741 | Food: 27 | Seeds: 2448 | Crops: 1496 | Woods: 201 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 4 |Normal tool : 18|Special tool : 1| Seeds collected : 6825 |Energy: 105
+A Money : 71.20943321689712 | Food: 11 | Seeds: 0 | Crops: 91 | Woods: 119 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 14
+B Role: lumberjack
+B Money : 3.5350275580037223 | Food: 20 | Seeds: 3845 | Crops: 14 | Woods: 807 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 11
+C Role: balanced
+C Money : 0.25553922509914573 | Food: 0 | Seeds: 114 | Crops: 0 | Woods: 23 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 0

@@ -18,33 +18,70 @@ class Market:
           self.market_history = []
           self.episode_history = []
           self.current_step = 0
+          self.MAX_AGE = 5 
           
     
-     def sumbit_sell_order(self,agent,item,quantity):
-        if quantity <= 0:
-           return
-        
-        if agent.inventory.get(item,0) >= quantity:
-            
-            self.sell_orders.setdefault(item,[]).append((agent,quantity))
-            
-            if len(self.sell_orders[item]) > 200:
-                self.sell_orders[item].pop(0)
-          
-     def sumbit_buy_order(self,agent,item,quanatiy):
-        if quanatiy <=0:
-            return
-        
-        price = self.prices[item]
-        max_affordable = int(agent.money // price)     
-        quanatiy = min(quanatiy,max_affordable) 
-        
-        if quanatiy > 0:
+     def sumbit_sell_order(self, agent, item, quantity):
 
-            self.buy_orders.setdefault(item, []).append((agent, quanatiy))
-            
-            if len(self.buy_orders[item]) > 200:
-                self.buy_orders[item].pop(0)
+      if quantity <= 0:
+        return
+
+    # Check inventory
+      if agent.inventory.get(item, 0) < quantity:
+        return
+
+    # Limit total open orders
+      if self.agent_has_open_order(agent, item, "sell"):
+        return
+    
+      quantity = min(quantity, 10)
+
+      if item not in self.sell_orders:
+        self.sell_orders[item] = []
+
+      order = {
+        "agent": agent,
+        "qty": quantity,
+        "age": 0
+    }
+
+      self.sell_orders[item].append(order)
+
+    # Prevent order book explosion
+      if len(self.sell_orders[item]) > 200:
+        self.sell_orders[item].pop(0)
+
+      print(Fore.CYAN + f"{agent.name} gave a sell order for {item} x{quantity}")
+ 
+ 
+ 
+ 
+ 
+     def sumbit_buy_order(self, agent, item, quantity):
+
+      if quantity <= 0:
+        return
+
+      if self.agent_has_open_order(agent, item, "buy"):
+        return
+
+      quantity = min(quantity, 10)
+
+      if item not in self.buy_orders:
+        self.buy_orders[item] = []
+
+      order = {
+        "agent": agent,
+        "qty": quantity,
+        "age": 0
+    }
+
+      self.buy_orders[item].append(order)
+
+      if len(self.buy_orders[item]) > 200:
+        self.buy_orders[item].pop(0)
+
+      print(Fore.BLACK + f"{agent.name} gave a buy order for {item} x{quantity}")
           
         
     
@@ -59,9 +96,9 @@ class Market:
             if not sellers and not buyers:
                continue
             
-            supply = sum(q for _, q in sellers)
-            demand = sum(q for _, q in buyers)
-
+              
+            supply = sum(order["qty"] for order in sellers)
+            demand = sum(order["qty"] for order in buyers)
             if supply == 0:
                 supply = 1
                             
@@ -88,11 +125,24 @@ class Market:
            return  self.market_history      
     
     
+     def age_and_clean_orders(self):
+
+      for book in [self.sell_orders, self.buy_orders]:
+
+        for item in list(book.keys()):
+            new_orders = []
+
+            for order in book[item]:
+                order["age"] += 1
+
+                if order["age"] <= self.MAX_AGE:
+                    new_orders.append(order)
+
+            book[item] = new_orders
+    
+    
     
      def clear_market(self):
-
-    # First update prices based on submitted orders
-      self.update_prices()
 
       for item in self.prices.keys():
 
@@ -102,61 +152,69 @@ class Market:
         if not sellers or not buyers:
             continue
 
-        # Make mutable copies
-        remaining_supply = [(s, q) for s, q in sellers]
-        remaining_demand = [(b, q) for b, q in buyers]
+        traded_pairs = set()
 
         price = self.prices[item]
 
-        # Try matching every seller with every buyer
-        for s_index in range(len(remaining_supply)):
+        i = 0
+        while i < len(sellers):
 
-            seller, sell_qty = remaining_supply[s_index]
+            sell_order = sellers[i]
+            seller = sell_order["agent"]
 
-            if sell_qty <= 0:
+            if sell_order["qty"] <= 0:
+                sellers.pop(i)
                 continue
 
-            for b_index in range(len(remaining_demand)):
+            j = 0
+            while j < len(buyers):
 
-                buyer, buy_qty = remaining_demand[b_index]
+                buy_order = buyers[j]
+                buyer = buy_order["agent"]
 
-                if buy_qty <= 0:
+                if buy_order["qty"] <= 0:
+                    buyers.pop(j)
                     continue
 
                 if seller == buyer:
-                    continue  # Prevent self trade
-
-                trade_qty = min(sell_qty, buy_qty)
-
-                # ---- SELLER INVENTORY SAFETY CHECK ----
-                actual_inventory = seller.inventory.get(item, 0)
-                if actual_inventory < trade_qty:
-                    trade_qty = actual_inventory
-
-                if trade_qty <= 0:
+                    j += 1
                     continue
+
+                pair = (seller.name, buyer.name)
+
+                if pair in traded_pairs:
+                    j += 1
+                    continue
+
+                traded_pairs.add(pair)
+
+                trade_qty = min(sell_order["qty"], buy_order["qty"], 10)
+
+                actual_inventory = seller.inventory.get(item, 0)
+                trade_qty = min(trade_qty, actual_inventory)
 
                 cost = trade_qty * price
 
-                # ---- BUYER AFFORDABILITY CHECK ----
                 if buyer.money < cost:
-                    affordable_qty = int(buyer.money // price)
-                    if affordable_qty <= 0:
-                        continue
-                    trade_qty = min(trade_qty, affordable_qty)
+                    affordable = int(buyer.money // price)
+                    trade_qty = min(trade_qty, affordable)
                     cost = trade_qty * price
 
                 if trade_qty <= 0:
+                    j += 1
                     continue
 
-                # ---- EXECUTE TRADE ----
+                # Execute trade
                 seller.inventory[item] -= trade_qty
                 seller.money += cost
+                print(Fore.GREEN + f"{seller.name} sold {item} x{trade_qty}")
 
                 buyer.inventory[item] += trade_qty
                 buyer.money -= cost
+                print(Fore.GREEN + f"{buyer.name} bought {item} x{trade_qty}")
 
-                # ---- LOG TRADE ----
+
+                # Log trade
                 self.episode_history.append({
                     "step": self.current_step,
                     "seller": seller.name,
@@ -166,16 +224,56 @@ class Market:
                     "price": round(price, 2)
                 })
 
-                # ---- UPDATE REMAINING ORDER QUANTITIES ----
-                sell_qty -= trade_qty
-                buy_qty -= trade_qty
+                sell_order["qty"] -= trade_qty
+                buy_order["qty"] -= trade_qty
 
-                remaining_supply[s_index] = (seller, sell_qty)
-                remaining_demand[b_index] = (buyer, buy_qty)
+                if buy_order["qty"] <= 0:
+                    buyers.pop(j)
+                else:
+                    j += 1
 
-                if sell_qty <= 0:
-                    break  # Seller exhausted, move to next seller
+                if sell_order["qty"] <= 0:
+                    break
 
-    # Clear order book after matching
-      self.sell_orders.clear()
-      self.buy_orders.clear()
+            if sell_order["qty"] <= 0:
+                sellers.pop(i)
+            else:
+                i += 1
+
+        self.sell_orders[item] = sellers
+        self.buy_orders[item] = buyers
+
+      self.age_and_clean_orders()
+      self.update_prices()
+      
+      
+      
+     def agent_has_open_order(self, agent, item, order_type):
+
+      if order_type == "buy":
+        orders = self.buy_orders.get(item, [])
+      else:
+        orders = self.sell_orders.get(item, [])
+
+      for order in orders:
+        if order["agent"] == agent:
+            return True
+
+      return False
+  
+  
+     def count_agent_orders(self, agent):
+
+      count = 0
+
+      for item_orders in self.buy_orders.values():
+        for order in item_orders:
+            if order["agent"] == agent:
+                count += 1
+
+      for item_orders in self.sell_orders.values():
+        for order in item_orders:
+            if order["agent"] == agent:
+                count += 1
+
+      return count

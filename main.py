@@ -10,7 +10,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from src.market import Market
 
-MARKET_INTERVAL = 50
+
+MARKET_INTERVAL = 200
+ORDER_SUBMISSION_INTERVAL = 3
 
 sns.set(style="darkgrid")
 init(autoreset=True)
@@ -118,6 +120,21 @@ for episode in range(EPISODES):
     
     log_buffer.clear() 
     market = Market()
+    
+    # Bootstrap market
+    for _ in range(5):
+     market.sell_orders.setdefault("crops", []).append({
+        "agent": agents[0],  
+        "qty": 200,
+        "age": 0
+    })
+
+    for _ in range(5):
+     market.sell_orders.setdefault("woods", []).append({
+        "agent": agents[1],
+        "qty": 20,
+        "age": 0
+    })
 
     log(f"\n===== EPISODE {episode+1} =====")
 
@@ -138,9 +155,29 @@ for episode in range(EPISODES):
     farms = {}
     crops = {}
     
+    agents[0].role = "farmer"
+    agents[1].role = "lumberjack"
+    agents[2].role = "balanced"
     
     for agent in agents:
-        agent.role = random.choice(["farmer", "lumberjack", "balanced"])
+        agent.set_market_strategy()
+    
+    for agent in agents:
+
+        print(agent.role)
+        if agent.role == "farmer":
+            agent.crop_multiplier = 4.0
+            agent.wood_multiplier = 0.0
+        elif agent.role == "lumberjack":
+            agent.crop_multiplier = 0
+            agent.wood_multiplier = 3.0
+            
+        
+        else:
+            agent.crop_multiplier = 1.0
+            agent.wood_multiplier = 1.0
+
+            
         log(f"{agent.name} starts as {agent.role}")
         print(f"{agent.name} starts as {agent.role}")
 
@@ -159,10 +196,10 @@ for episode in range(EPISODES):
         agent.energy = 25
         agent.money = 25
         agent.memory = []
-        agent.inventory['seeds'] = 3
-        agent.inventory['food'] = 8
+        agent.inventory['seeds'] = 5
+        agent.inventory['food'] = 40
         agent.inventory['woods'] = 0
-        agent.inventory['special_farmer_tool'] = 0
+        agent.inventory['special_farmer_tool'] = 1
         agent.inventory['normal_farmer_tool'] = 0
         agent.inventory['normal_farmer_tool_durability'] = 0
         agent.inventory['special_farmer_tool_durability'] = 0
@@ -219,57 +256,32 @@ for episode in range(EPISODES):
                 woods.append((fx, fy))
         
         
-        #Market
-        snapshot = market.get_market_trade_history()
-                
-       
-        if step % MARKET_INTERVAL == 0:            
+        #Market   
+        if step % ORDER_SUBMISSION_INTERVAL == 0:
          for agent in agents:
-           if agent.energy <= 0:
-                continue
-            
-            
+          if agent.energy <= 0:
+              continue
 
-           agent.submitted_buy = False
-           agent.submitted_sell = False
+          orders = agent.decide_market_orders(market) or []
 
-           wood_price = market.prices["woods"]
-           crop_price = market.prices["crops"]
-
-        # ---------- SELL LOGIC ----------
-           if (agent.inventory["crops"] > 30 and crop_price > market.base_price['crops'] * 0.8 and  not agent.submitted_sell):
-            market.sumbit_sell_order(agent, "crops", 5)
-            agent.submitted_sell = True
-
-           elif (agent.inventory["woods"] > 50 and wood_price > market.base_price['woods'] * 0.8 and not agent.submitted_sell):
-            market.sumbit_sell_order(agent, "woods", 5)
-            agent.submitted_sell = True
+          for order_type, item, qty in orders:
+           if order_type == "sell":
+            market.sumbit_sell_order(agent, item, qty)
+           else:
+            market.sumbit_buy_order(agent, item, qty)
 
 
-        # ---------- BUY LOGIC ----------
-            if ((agent.inventory["food"] < 8 or crop_price < market.base_price["crops"])  and not agent.submitted_buy):
-           
-             market.sumbit_buy_order(agent, "crops", 3)
-             agent.submitted_buy = True
 
-           elif ((agent.inventory["woods"] < 20 or
-               wood_price < market.base_price["woods"])
-              and not agent.submitted_buy):
-
-            market.sumbit_buy_order(agent, "woods", 3)
-            agent.submitted_buy = True
-
-
-         market.current_step = step
-         market.clear_market()
-       
-        
         if step % MARKET_INTERVAL == 0:
-                    print(
-                        f"[Market] Step {step} | "
-                        f"Crops: {market.prices['crops']:.2f} | "
-                        f"Woods: {market.prices['woods']:.2f}"
-                    )       
+            market.current_step = step
+            market.clear_market()
+
+            print(
+                f"[Market] Step {step} | "
+                f"Crops: {market.prices['crops']:.2f} | "
+                f"Woods: {market.prices['woods']:.2f}"
+            )
+
                                     
              
 
@@ -321,7 +333,7 @@ for episode in range(EPISODES):
                 
              
             # Auto craft tool if none 
-            if agent.inventory["special_farmer_tool"] == 0 and agent.inventory["woods"] >= 300:
+            if agent.role == "farmer" and  agent.inventory["special_farmer_tool"] == 0 and agent.inventory["woods"] >= 300:
                 agent.inventory["woods"] -= 300
                 agent.inventory["special_farmer_tool"] += 1
                 episode_speical_tool_crafted +=1
@@ -416,13 +428,16 @@ for episode in range(EPISODES):
 
             if pos in woods:
                 woods.remove(pos)
-                agent.inventory['woods'] +=1
+                wood_gain = int(1 * agent.wood_multiplier)
+                wood_gain = max(1, wood_gain)
+                agent.inventory['woods'] += wood_gain
                 episode_woods_collected +=1
                 reward +=1
                 
             
             # Plant
             if (
+                agent.role == "farmer" and
                 agent.inventory['seeds'] > 0
                 and agent.is_in_plot(agent.x, agent.y)
                 and pos not in farms
@@ -443,15 +458,15 @@ for episode in range(EPISODES):
                 episode_food_eaten += 1
 
            # Harvest
-            if pos in crops and crops[pos] == agent.name:   
+            if agent.role == "farmer" and pos in crops and crops[pos] == agent.name:
                 del crops[pos]
                 
                 energy_gain = 9
-                crop_gain = 1
+                crop_gain = int(1 * agent.crop_multiplier)
                 
                             
                 if agent.inventory.get("special_farmer_tool" , 0) > 0:
-                     crop_gain = 4
+                     crop_gain =  int(2 * agent.crop_multiplier)
                      energy_gain = 10
                      agent.inventory["special_farmer_tool_durability"] -= 1
                     
@@ -465,7 +480,7 @@ for episode in range(EPISODES):
                 
                 
                 elif agent.inventory.get("normal_farmer_tool", 0) > 0:
-                     crop_gain = 2
+                     crop_gain =  int(1 * agent.crop_multiplier)
                      energy_gain = 8
                      agent.inventory["normal_farmer_tool_durability"] -= 1
                      
@@ -482,8 +497,8 @@ for episode in range(EPISODES):
                 episode_food_eaten += 1
                 
                 
-            if agent.inventory['crops'] >= 5 and agent.inventory['food'] < 10:
-                    agent.inventory['crops'] -= 5
+            if agent.inventory['crops'] >= 3 and agent.inventory['food'] < 10:
+                    agent.inventory['crops'] -= 3
                     agent.inventory['food'] += 2
 
             
