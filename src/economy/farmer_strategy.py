@@ -51,3 +51,5 @@ class FarmerStrategy(MarketStrategy):
                 orders.append(("buy", "woods", qty))
 
         return orders
+    
+    

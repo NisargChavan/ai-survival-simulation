@@ -3,11 +3,16 @@ from colorama import Fore, Style, init
 from src.economy.farmer_strategy import FarmerStrategy
 from src.economy.lumberjack_strategy import LumberJackStrategy
 from src.economy.balanced_strategy import BalancedStrategy
+from src.economy.ProfitEvaluator import ProfitEvaluator
+
+from src.market import market
+
 
 init(autoreset=True)
 
 class Agent:    
-    def __init__(self,name,world_width, world_height,danger_weight=1.0, epsilon=0.2):
+    def __init__(self,name,world_width, world_height,danger_weight=1.0, epsilon=0.2 ):
+        
         self.name = name
         self.world_width = world_width
         self.world_height = world_height
@@ -36,8 +41,13 @@ class Agent:
         self.trade_cooldown = 0
         self.crop_multiplier = 1.0
         self.wood_multiplier = 1.0
-        self.role = "generalist"
-        self.role_timer = 0
+        self.role = "farmer"
+        self.set_market_strategy()
+        self.price_bias = random.uniform(0.9, 1.1)
+        
+        self.role_timer = 10
+        self.market = market
+        self.profit_evaluator = ProfitEvaluator(self.market)
 
         if self.name == "A":
             # Top-left
@@ -50,7 +60,12 @@ class Agent:
         elif self.name == "C":
             # Bottom-left
             self.plot_center = (half, self.world_height - half - 1)
-
+            
+        elif self.name == "D":
+           self.plot_center = (
+        self.world_width - half - 1,
+        self.world_height - half - 1
+    )          
         else:
             # Default (bottom-right if more agents later)
             self.plot_center = (
@@ -68,21 +83,8 @@ class Agent:
         }
         self.q_table = {
          i: {"up":0, "down":0, "left":0, "right":0}
-         for i in range(50)
-         
+         for i in range(50)         
 }
-        self.state_names = {
-            0:"Safe_NoFood",
-            1:"Safe_Food_Up",
-            2:"Safe_Food_Down",
-            3:"Safe_Food_Left",
-            4:"Safe_Food_Right",
-            5:"Danger_NoFood",
-            6:"Danger_Food_Up",
-            7:"Danger_Food_Down",
-            8:"Danger_Food_Left",
-            9:"Danger_Food_Right"
-        }
         self.inventory = {
             "food": 0,
             "seeds": 0,
@@ -95,6 +97,7 @@ class Agent:
             "rare_crop" : 0
             
         }
+       
         self.danger_weight = danger_weight
         self.epsilon = epsilon
         self.lr = 0.1        
@@ -103,6 +106,43 @@ class Agent:
     
     
         
+    
+    def evaluat_economy(self,profession_count):
+        
+        profits = self.profit_evaluator.evaluate_all(self,profession_count)
+        best_profession = max(profits, key=profits.get)
+           
+        if self.role_timer <= 0 :
+            
+                current_profit = profits[self.role]
+                best_profit = profits[best_profession]
+
+            
+                job_capacity = {
+                        "farmer": 2,
+                        "lumberjack": 2,
+                        "balanced": 2
+                    }
+
+                job_full = profession_count[best_profession] >= job_capacity[best_profession]
+
+                if (
+                    best_profession != self.role
+                    and best_profit > current_profit * 1.15
+                    and not job_full
+                ):
+
+                  print(Fore.GREEN + f"{self.name} switching profession {self.role} → {best_profession}")
+
+                  self.role = best_profession
+                  self.set_market_strategy()
+                self.role_timer = 10
+                
+                   
+            
+        else:
+         self.role_timer -= 1      
+    
     
     def get_trade_status(self):
      return {
@@ -131,12 +171,18 @@ class Agent:
 
      if self.role == "farmer":
         self.strategy = FarmerStrategy(self)
+        self.crop_multiplier = 4.0
+        self.wood_multiplier = 0.0
 
      elif self.role == "lumberjack":
         self.strategy = LumberJackStrategy(self)
+        self.crop_multiplier = 0
+        self.wood_multiplier = 3.0
 
      else:
         self.strategy = BalancedStrategy(self)
+        self.crop_multiplier = 1.0
+        self.wood_multiplier = 1.0
 
     
 
@@ -147,7 +193,7 @@ class Agent:
         
         if goal == "survive":
             self.plan = ["find_food"] * 5
-        elif goal == "collect_seeds":
+        elif goal == "  ":
             self.plan =  ["collect_seeds"] * 10
         elif goal == "expand_farm":
          self.plan = [

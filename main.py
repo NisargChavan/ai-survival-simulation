@@ -9,9 +9,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from src.market import Market
+from src.market import market
 
 
-MARKET_INTERVAL = 200
+MARKET_INTERVAL = 40
 ORDER_SUBMISSION_INTERVAL = 3
 
 sns.set(style="darkgrid")
@@ -100,8 +101,23 @@ def log(text):
 agents = [
     Agent("A", WORLD_WIDTH, WORLD_HEIGHT, danger_weight=1.5, epsilon=0.25),
     Agent("B", WORLD_WIDTH, WORLD_HEIGHT, danger_weight=1.0, epsilon=0.25),
-    Agent("C", WORLD_WIDTH, WORLD_HEIGHT, danger_weight=0.7, epsilon=0.25)
+    Agent("C", WORLD_WIDTH, WORLD_HEIGHT, danger_weight=0.7, epsilon=0.25),
+    Agent("D", WORLD_WIDTH, WORLD_HEIGHT, danger_weight=1.0, epsilon=0.25),
 ]
+
+def count_professions(agents):
+
+    counts = {
+        "farmer": 0,
+        "lumberjack": 0,
+        "balanced": 0
+    }
+
+    for a in agents:
+        counts[a.role] += 1
+
+    return counts
+
 
 print(Fore.GREEN + "Simulation started...")
 
@@ -119,7 +135,7 @@ episode_seeds = []
 for episode in range(EPISODES):
     
     log_buffer.clear() 
-    market = Market()
+    
     
     # Bootstrap market
     for _ in range(5):
@@ -158,6 +174,10 @@ for episode in range(EPISODES):
     agents[0].role = "farmer"
     agents[1].role = "lumberjack"
     agents[2].role = "balanced"
+    agents[3].role = "farmer"
+    
+    
+    
     
     for agent in agents:
         agent.set_market_strategy()
@@ -165,18 +185,7 @@ for episode in range(EPISODES):
     for agent in agents:
 
         print(agent.role)
-        if agent.role == "farmer":
-            agent.crop_multiplier = 4.0
-            agent.wood_multiplier = 0.0
-        elif agent.role == "lumberjack":
-            agent.crop_multiplier = 0
-            agent.wood_multiplier = 3.0
-            
         
-        else:
-            agent.crop_multiplier = 1.0
-            agent.wood_multiplier = 1.0
-
             
         log(f"{agent.name} starts as {agent.role}")
         print(f"{agent.name} starts as {agent.role}")
@@ -273,16 +282,29 @@ for episode in range(EPISODES):
 
 
         if step % MARKET_INTERVAL == 0:
-            market.current_step = step
-            market.clear_market()
 
-            print(
-                f"[Market] Step {step} | "
-                f"Crops: {market.prices['crops']:.2f} | "
-                f"Woods: {market.prices['woods']:.2f}"
-            )
+          market.current_step = step
 
-                                    
+    
+          market.clear_market()
+ 
+          random.shuffle(agents)
+
+          for agent in agents:
+            profession_counts = count_professions(agents)
+
+            agent.evaluat_economy(profession_counts)
+
+          print(
+            f"[Market] Step {step} | "
+            f"Crops: {market.prices['crops']:.2f} | "
+            f"Woods: {market.prices['woods']:.2f}"
+          )
+
+          print(
+            f"Wages | Farmer: {market.wages['farmer']:.2f} | "
+            f"Lumberjack: {market.wages['lumberjack']:.2f}"
+         )          
              
 
         for agent in agents:
@@ -290,9 +312,7 @@ for episode in range(EPISODES):
             sx = min(WORLD_WIDTH-1, max(0, agent.x + random.randint(-8,8)))
             sy = min(WORLD_HEIGHT-1, max(0, agent.y + random.randint(-8,8)))
         
-            if not agent.is_in_plot(sx, sy):
-                seeds.append((sx, sy))
-                break
+            seeds.append((sx,sy))
 
 
         # Farm growth
@@ -497,8 +517,8 @@ for episode in range(EPISODES):
                 episode_food_eaten += 1
                 
                 
-            if agent.inventory['crops'] >= 3 and agent.inventory['food'] < 10:
-                    agent.inventory['crops'] -= 3
+            if agent.inventory['crops'] >= 2 and agent.inventory['food'] < 10:
+                    agent.inventory['crops'] -= 2
                     agent.inventory['food'] += 2
 
             
@@ -533,7 +553,7 @@ for episode in range(EPISODES):
                         attempt_trade(a, b)    
 
         # Draw world
-        draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers)
+        draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers , visible_seeds)
         
     if market.episode_history:
          with open("market_log.txt", "a" , encoding="utf-8") as f:

@@ -1,26 +1,3 @@
 AI Survival World Run Log
-Run Time: 2026-03-04 16:49:42.180699
+Run Time: 2026-03-07 23:08:58.968317
 ====================================
-
-===== EPISODE 1 =====
-A starts as farmer
-B starts as lumberjack
-C starts as balanced
-All agents died at step 1422
-A Role: farmer
-A Money : 36.76395512407069 | Food: 0 | Seeds: 0 | Crops: 0 | Woods: 15 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
-B Role: lumberjack
-B Money : 37.98050565083016 | Food: 0 | Seeds: 190 | Crops: 0 | Woods: 314 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
-C Role: balanced
-C Money : 0.25553922509914573 | Food: 0 | Seeds: 25 | Crops: 0 | Woods: 5 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 1|Special tool : 0| Seeds collected : 207 |Energy: 0
-
-===== EPISODE 2 =====
-A starts as farmer
-B starts as lumberjack
-C starts as balanced
-A Role: farmer
-A Money : 71.20943321689712 | Food: 11 | Seeds: 0 | Crops: 91 | Woods: 119 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 14
-B Role: lumberjack
-B Money : 3.5350275580037223 | Food: 20 | Seeds: 3845 | Crops: 14 | Woods: 807 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 11
-C Role: balanced
-C Money : 0.25553922509914573 | Food: 0 | Seeds: 114 | Crops: 0 | Woods: 23 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 2|Special tool : 0| Seeds collected : 4245 |Energy: 0

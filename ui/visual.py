@@ -21,6 +21,9 @@ CELL_SIZE = min(CELL_SIZE_X, CELL_SIZE_Y)
 SCREEN_WIDTH = WORLD_WIDTH * CELL_SIZE
 SCREEN_HEIGHT = WORLD_HEIGHT * CELL_SIZE
 
+
+AGENT_SCALE = int(CELL_SIZE * 1.3)
+
 # ===============================
 # INIT
 # ===============================
@@ -44,14 +47,38 @@ grass_img = pygame.transform.scale(grass_img, (CELL_SIZE, CELL_SIZE))
 seed_img = pygame.image.load(os.path.join(ASSET_PATH, "seeds.png"))
 seed_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
 
+visible_Seeds_img = pygame.image.load(os.path.join(ASSET_PATH ,  "visible_seeds.png"))
+visible_Seeds_img = pygame.transform.scale(visible_Seeds_img ,(CELL_SIZE , CELL_SIZE))
+
+
 wood_img = pygame.image.load(os.path.join(ASSET_PATH, "woods.png"))
-wood_img = pygame.transform.scale(wood_img, (CELL_SIZE, CELL_SIZE))
+wood_img = pygame.transform.scale(wood_img, (AGENT_SCALE,  AGENT_SCALE))
 
 crop_img = pygame.image.load(os.path.join(ASSET_PATH, "crop.png"))
 crop_img = pygame.transform.scale(crop_img, (CELL_SIZE, CELL_SIZE))
 
 farmland_img = pygame.image.load(os.path.join(ASSET_PATH, "farmland.png"))
 farmland_img = pygame.transform.scale(farmland_img, (CELL_SIZE, CELL_SIZE))
+
+food_img = pygame.image.load(os.path.join(ASSET_PATH, "food.png")).convert_alpha()
+food_img = pygame.transform.scale(food_img, (CELL_SIZE, CELL_SIZE))
+
+
+# ---- Agent Sprites ----
+agent_a_img = pygame.image.load(os.path.join(ASSET_PATH, "agent_a.png"))
+agent_a_img = pygame.transform.scale(agent_a_img, (AGENT_SCALE, AGENT_SCALE))
+
+agent_b_img = pygame.image.load(os.path.join(ASSET_PATH, "agent_b.png"))
+agent_b_img = pygame.transform.scale(agent_b_img, (AGENT_SCALE, AGENT_SCALE))
+
+agent_c_img = pygame.image.load(os.path.join(ASSET_PATH, "agent_c.png"))
+agent_c_img = pygame.transform.scale(agent_c_img, (AGENT_SCALE, AGENT_SCALE))
+
+
+agent_d_img = pygame.image.load(os.path.join(ASSET_PATH, "agent_d.png"))
+agent_d_img = pygame.transform.scale(agent_d_img, (AGENT_SCALE, AGENT_SCALE))
+
+
 
 # ===============================
 # COLORS
@@ -73,7 +100,7 @@ AGENT_COLORS = {
 # ===============================
 # DRAW WORLD
 # ===============================
-def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, dangers):
+def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, dangers , visible_seeds):
 
     # ---- Grass Background ----
     for x in range(WORLD_WIDTH):
@@ -95,16 +122,14 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
 
     # ---- Food ----
     for fx, fy in foods:
-        pygame.draw.rect(
-            screen,
-            YELLOW,
-            (
-                fx * CELL_SIZE + CELL_SIZE//4,
-                fy * CELL_SIZE + CELL_SIZE//4,
-                CELL_SIZE//2,
-                CELL_SIZE//2
-            )
+     screen.blit(
+        food_img,
+        (
+            fx * CELL_SIZE,
+            fy * CELL_SIZE
         )
+      )
+     
 
     # ---- Farms (growing) ----
     for (fx, fy), farm in farms.items():
@@ -147,21 +172,28 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
 
     # ---- Agents ----
     for agent in agents:
-        if agent.energy <= 0:
-            continue
 
-        color = AGENT_COLORS.get(agent.name, BLACK)
+     if agent.energy <= 0:
+        continue
 
-        pygame.draw.rect(
-            screen,
-            color,
-            (
-                agent.x * CELL_SIZE + 2,
-                agent.y * CELL_SIZE + 2,
-                CELL_SIZE - 4,
-                CELL_SIZE - 4
-            )
+     if agent.name == "A":
+        img = agent_a_img
+     elif agent.name == "B":
+        img = agent_b_img
+     elif agent.name == "C":
+        img = agent_c_img
+     elif agent.name == "D":
+        img = agent_d_img   
+     else:
+        continue
+
+     screen.blit(
+        img,
+        (
+            agent.x * CELL_SIZE,
+            agent.y * CELL_SIZE
         )
+    )
 
     # ---- UI Text ----
     ep_text = font.render(f"Episode: {episode}", True, (0, 0, 0))
@@ -171,4 +203,4 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
     screen.blit(step_text, (10, 30))
 
     pygame.display.flip()
-    clock.tick(900)
+    clock.tick(200)
