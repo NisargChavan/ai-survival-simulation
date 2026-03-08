@@ -17,7 +17,7 @@ ORDER_SUBMISSION_INTERVAL = 3
 
 sns.set(style="darkgrid")
 init(autoreset=True)
-
+zoom = 1
 
 def attempt_trade(a, b):
 
@@ -26,6 +26,7 @@ def attempt_trade(a, b):
 
     status_a = a.get_trade_status()
     status_b = b.get_trade_status()
+    
 
 
     trade_amount = 5
@@ -236,6 +237,9 @@ for episode in range(EPISODES):
         if random.random() < 0.7:
             fx = random.randint(0, WORLD_WIDTH-1)
             fy = random.randint(0, WORLD_HEIGHT-1)
+            
+            if fy >= 44:
+             continue
 
            # Check if inside any agent plot
             in_any_plot = False
@@ -248,23 +252,48 @@ for episode in range(EPISODES):
             if not in_any_plot and len(foods) < 50:
                 foods.append((fx, fy))
         
-        #wood spawn
         if random.random() < 0.7:
-             fx = random.randint(0, WORLD_WIDTH-1)
-             fy = random.randint(0, WORLD_HEIGHT-1)
 
-           # Check if inside any agent plot
-             in_any_plot = False
-             for ag in agents:
-                if ag.is_in_plot(fx, fy):
+            fx = random.randint(0, WORLD_WIDTH - 1)
+            fy = random.randint(0, WORLD_HEIGHT - 1)
+            
+            
+            if fy >= 44:
+             continue
+
+            
+            BUFFER = 3
+            MIN_TREE_DISTANCE = 3
+
+            in_any_plot = False
+
+            # --- Check farm buffer ---
+            for ag in agents:
+
+                cx, cy = ag.plot_center
+                half_w = ag.plot_width // 2
+                half_h = ag.plot_height // 2
+
+                left   = cx - half_w - BUFFER
+                right  = cx + half_w + BUFFER
+                top    = cy - half_h - BUFFER
+                bottom = cy + half_h + BUFFER
+
+                if left <= fx <= right and top <= fy <= bottom:
                     in_any_plot = True
                     break
 
-            # Spawn only if not inside plot and limit not exceeded
-             if not in_any_plot and len(woods) < 70:
+            # --- Check tree spacing ---
+            too_close = False
+            for wx, wy in woods:
+                if abs(wx - fx) <= MIN_TREE_DISTANCE and abs(wy - fy) <= MIN_TREE_DISTANCE:
+                    too_close = True
+                    break
+
+            # --- Spawn tree ---
+            if not in_any_plot and not too_close and len(woods) < 70:
                 woods.append((fx, fy))
-        
-        
+                
         #Market   
         if step % ORDER_SUBMISSION_INTERVAL == 0:
          for agent in agents:
@@ -301,10 +330,7 @@ for episode in range(EPISODES):
             f"Woods: {market.prices['woods']:.2f}"
           )
 
-          print(
-            f"Wages | Farmer: {market.wages['farmer']:.2f} | "
-            f"Lumberjack: {market.wages['lumberjack']:.2f}"
-         )          
+                
              
 
         for agent in agents:
@@ -322,11 +348,24 @@ for episode in range(EPISODES):
                 crops[pos] = farms[pos]["owner"]
                 del farms[pos]
 
+
+        
+                
         # Quit event
+    
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+           
+        
+         if event.type == pygame.MOUSEWHEEL:
+            if event.y > 0:
+                zoom += 0.1
+            elif event.y < 0:
+                zoom -= 0.1
+            zoom = max(0.5, min(zoom, 2.5))
+         if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+                
 
         # ===============================
         # AGENT LOOP
@@ -448,6 +487,8 @@ for episode in range(EPISODES):
 
             if pos in woods:
                 woods.remove(pos)
+                agent.is_chopping = True
+                agent.axe_frame = 0
                 wood_gain = int(1 * agent.wood_multiplier)
                 wood_gain = max(1, wood_gain)
                 agent.inventory['woods'] += wood_gain
@@ -467,6 +508,9 @@ for episode in range(EPISODES):
                 agent.inventory['seeds'] -= 1
                 agent.farm_memory.append(pos)
                 
+                agent.is_farming = True
+                agent.hoe_frame = 0
+                
                 reward += 2
 
             # Eat food
@@ -483,6 +527,7 @@ for episode in range(EPISODES):
                 
                 energy_gain = 9
                 crop_gain = int(1 * agent.crop_multiplier)
+                
                 
                             
                 if agent.inventory.get("special_farmer_tool" , 0) > 0:
@@ -553,7 +598,7 @@ for episode in range(EPISODES):
                         attempt_trade(a, b)    
 
         # Draw world
-        draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers , visible_seeds)
+        draw_world(agents, foods, farms, crops,woods ,episode+1, step+1, [], dangers , visible_seeds,zoom,action)
         
     if market.episode_history:
          with open("market_log.txt", "a" , encoding="utf-8") as f:

@@ -11,11 +11,6 @@ class Market:
             "rare_crop": 15
           }
           
-          self.wages = {
-            "farmer": 5,
-            "lumberjack": 5,
-            "balanced": 5
-        }
           
           self.job_capacity = {
             "farmer": 2,
@@ -257,7 +252,7 @@ class Market:
 
       self.age_and_clean_orders()
       self.update_prices()
-      self.update_wages()
+     
       
       
       
@@ -292,14 +287,7 @@ class Market:
       return count
 
 
-     def update_wages(self):
-
-      crop_price = self.prices["crops"]
-      wood_price = self.prices["woods"]
-
-      self.wages["farmer"] = crop_price * 3
-      self.wages["lumberjack"] = wood_price * 3
-      self.wages["balanced"] = (crop_price + wood_price) * 1.5
+     
 
     
 market = Market()    

@@ -25,7 +25,7 @@ class Agent:
         self.visited = []
         self.agent_order_count = {}
         self.farm_memory = []
-        self.plot_size = 11
+        self.plot_size = 10
         half = self.plot_size // 2
         self.goal = "maintain"
         self.current_task = None
@@ -57,13 +57,13 @@ class Agent:
             self.plot_center = (19, 22)   # move left
 
         elif self.name == "B":
-            self.plot_center = (41, 22)   # move right
+            self.plot_center = (39, 22)   # move right
 
         elif self.name == "C":
             self.plot_center = (19, 37)   # move left
 
         elif self.name == "D":
-            self.plot_center = (41, 37)   # move
+            self.plot_center = (39 ,  37)   # move
         else:
             # Default (bottom-right if more agents later)
             self.plot_center = (
@@ -72,10 +72,16 @@ class Agent:
             )
             
         
-        self.vision = 10
+        self.vision = 20
         self.total_food = 0
         self.survival_count = 0 
         self.Panic_mode = None
+        self.direction = "down"
+        self.frame = 0
+        self.is_chopping = False
+        self.axe_frame = 0
+        self.is_farming = False
+        self.hoe_frame = 0
         self.target = {
             "food": 20,
             "crops": 200,
@@ -584,12 +590,16 @@ class Agent:
     # Move
      if direction == "up":
         self.y += 1
+        self.direction = "down"
      elif direction == "down":
         self.y -= 1    
+        self.direction = "up"
      elif direction == "left":
-        self.x -= 1    
+        self.x -= 1 
+        self.direction = "left"   
      elif direction == "right":
         self.x += 1 
+        self.direction = "right"
 
     # Clamp to grid
      self.x = max(0, min(self.world_width - 1, self.x))
