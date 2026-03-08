@@ -4,8 +4,8 @@ import os
 # ===============================
 # WORLD SETTINGS
 # ===============================
-WORLD_WIDTH = 40
-WORLD_HEIGHT = 40
+WORLD_WIDTH = 60
+WORLD_HEIGHT = 60
 
 # Maximum window size (to keep it reasonable)
 MAX_SCREEN_WIDTH = 1000
@@ -17,6 +17,8 @@ MAX_SCREEN_HEIGHT = 800
 CELL_SIZE_X = MAX_SCREEN_WIDTH // WORLD_WIDTH
 CELL_SIZE_Y = MAX_SCREEN_HEIGHT // WORLD_HEIGHT
 CELL_SIZE = min(CELL_SIZE_X, CELL_SIZE_Y)
+
+
 
 SCREEN_WIDTH = WORLD_WIDTH * CELL_SIZE
 SCREEN_HEIGHT = WORLD_HEIGHT * CELL_SIZE
@@ -49,6 +51,13 @@ seed_img = pygame.transform.scale(seed_img, (CELL_SIZE, CELL_SIZE))
 
 visible_Seeds_img = pygame.image.load(os.path.join(ASSET_PATH ,  "visible_seeds.png"))
 visible_Seeds_img = pygame.transform.scale(visible_Seeds_img ,(CELL_SIZE , CELL_SIZE))
+
+ground_img = pygame.image.load(os.path.join(ASSET_PATH, "ground_2.png")).convert()
+
+ground_img = pygame.transform.scale(
+    ground_img,
+    (SCREEN_WIDTH, SCREEN_HEIGHT)
+)
 
 
 wood_img = pygame.image.load(os.path.join(ASSET_PATH, "woods.png"))
@@ -103,10 +112,21 @@ AGENT_COLORS = {
 def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, dangers , visible_seeds):
 
     # ---- Grass Background ----
-    for x in range(WORLD_WIDTH):
-        for y in range(WORLD_HEIGHT):
-            screen.blit(grass_img, (x * CELL_SIZE, y * CELL_SIZE))
-            
+    screen.blit(ground_img, (0, 0))   
+    
+    # ---- Agent Plots ----
+   
+
+    # ---- Food ----
+    for fx, fy in foods:
+     screen.blit(
+        food_img,
+        (
+            fx * CELL_SIZE,
+            fy * CELL_SIZE
+        )
+      )
+     
     # ---- Agent Plots ----
     for agent in agents:
         cx, cy = agent.plot_center
@@ -118,17 +138,7 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
                     screen.blit(
                         farmland_img,
                         (x * CELL_SIZE, y * CELL_SIZE)
-                    )        
-
-    # ---- Food ----
-    for fx, fy in foods:
-     screen.blit(
-        food_img,
-        (
-            fx * CELL_SIZE,
-            fy * CELL_SIZE
-        )
-      )
+                    )          
      
 
     # ---- Farms (growing) ----

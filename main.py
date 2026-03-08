@@ -70,8 +70,8 @@ def attempt_trade(a, b):
 # ===============================
 # CONFIG
 # ===============================
-WORLD_WIDTH = 40
-WORLD_HEIGHT = 40
+WORLD_WIDTH = 60
+WORLD_HEIGHT = 60
 EPISODES = 300
 STEPS_PER_EPISODE = 10000
 

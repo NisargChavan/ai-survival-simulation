@@ -25,7 +25,7 @@ class Agent:
         self.visited = []
         self.agent_order_count = {}
         self.farm_memory = []
-        self.plot_size = 15
+        self.plot_size = 11
         half = self.plot_size // 2
         self.goal = "maintain"
         self.current_task = None
@@ -47,31 +47,31 @@ class Agent:
         
         self.role_timer = 10
         self.market = market
+        self.plot_width = 21
+        self.plot_height = 15 
         self.profit_evaluator = ProfitEvaluator(self.market)
 
+        offset = (self.plot_width - 15) // 2   # how much wider farm became
+
         if self.name == "A":
-            # Top-left
-            self.plot_center = (half, half)
+            self.plot_center = (19, 22)   # move left
 
         elif self.name == "B":
-            # Top-right
-            self.plot_center = (self.world_width - half - 1, half)
+            self.plot_center = (41, 22)   # move right
 
         elif self.name == "C":
-            # Bottom-left
-            self.plot_center = (half, self.world_height - half - 1)
-            
+            self.plot_center = (19, 37)   # move left
+
         elif self.name == "D":
-           self.plot_center = (
-        self.world_width - half - 1,
-        self.world_height - half - 1
-    )          
+            self.plot_center = (41, 37)   # move
         else:
             # Default (bottom-right if more agents later)
             self.plot_center = (
                 self.world_width - half - 1,
                 self.world_height - half - 1
             )
+            
+        
         self.vision = 10
         self.total_food = 0
         self.survival_count = 0 
