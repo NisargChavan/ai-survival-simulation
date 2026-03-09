@@ -18,8 +18,8 @@ from src.communication.chat_worker import chat_queue
 
 
 CHAT_INTERVAL = 100
-TEST_INTERVAL = 1000
-MARKET_INTERVAL = 50
+TEST_INTERVAL = 500
+MARKET_INTERVAL = 40
 ORDER_SUBMISSION_INTERVAL = 3
 
 sns.set(style="darkgrid")
@@ -217,7 +217,7 @@ for episode in range(EPISODES):
         agent.x = min(WORLD_WIDTH-1, max(0, px + random.randint(-3, 3)))
         agent.y = min(WORLD_HEIGHT-1, max(0, py + random.randint(-3, 3)))
         agent.energy = 25
-        agent.money = 25
+        agent.money = 200
         agent.memory = []
         agent.inventory['seeds'] = 5
         agent.inventory['food'] = 40
@@ -318,7 +318,7 @@ for episode in range(EPISODES):
 
         if step % TEST_INTERVAL == 0:
             for agent in agents:
-                print(Fore.RED+f"{agent.name} : {agent.mo}")        
+                print(Fore.RED+f"{agent.name} : {agent.money}")        
                 
                 
         #Market   
@@ -427,7 +427,7 @@ for episode in range(EPISODES):
                 agent.inventory["rare_crop"] -= 2
                 agent.inventory["special_farmer_tool"] += 1
                 episode_speical_tool_crafted +=1
-                log(f"{agent.name} crafted a special farming tool at {step} step!!")
+                log(f"{agent.role}{agent.name} crafted a special farming tool at {step} step!!")
                 agent.tool_durability["special_farmer_tool"] = 100      
                 
                 

@@ -28,7 +28,7 @@ class Market:
           self.market_history = []
           self.episode_history = []
           self.current_step = 0
-          self.MAX_AGE = 5 
+          self.MAX_AGE = 40
           
     
      def sumbit_sell_order(self, agent, item, quantity):
@@ -88,7 +88,7 @@ class Market:
 
       self.buy_orders[item].append(order)
 
-      if len(self.buy_orders[item]) > 200:
+      if len(self.buy_orders[item]) > 600:
         self.buy_orders[item].pop(0)
 
       print(Fore.BLACK + f"{agent.name} gave a buy order for {item} x{quantity}")
@@ -119,7 +119,6 @@ class Market:
             
             
             
-            
             self.prices[item] = (
                 0.6 * self.prices[item] +
                 0.4 * new_price
@@ -131,6 +130,9 @@ class Market:
 
             if item == "special_farmer_tool":
                 self.prices[item] = min(self.prices[item], 120)
+            
+            if item == "rare_crop":
+                 self.prices[item] = min(self.prices[item], 80)    
 
             if demand == 0:
               demand = 1
@@ -199,13 +201,6 @@ class Market:
                     j += 1
                     continue
 
-                pair = (seller.name, buyer.name)
-
-                if pair in traded_pairs:
-                    j += 1
-                    continue
-
-                traded_pairs.add(pair)
 
                 trade_qty = min(sell_order["qty"], buy_order["qty"])
 
@@ -226,11 +221,11 @@ class Market:
                 # Execute trade
                 seller.inventory[item] -= trade_qty
                 seller.money += cost
-                print(Fore.GREEN + f"{seller.name} sold {item} x{trade_qty}")
+                print(Fore.GREEN + f"{seller.name} sold {item} x{trade_qty} at {cost:.2f}")
 
                 buyer.inventory[item] += trade_qty
                 buyer.money -= cost
-                print(Fore.GREEN + f"{buyer.name} bought {item} x{trade_qty}")
+                print(Fore.GREEN + f"{buyer.name} bought {item} x{trade_qty} at {cost:.2f} ")
                 
                 if item == "normal_farmer_tool":
                   buyer.tool_durability["normal_farmer_tool"] = 50

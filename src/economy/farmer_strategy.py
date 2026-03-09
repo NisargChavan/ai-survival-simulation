@@ -84,13 +84,15 @@ class FarmerStrategy(MarketStrategy):
         
         
         
-        if normal_farming_tool <= 0:
-            qty = 1
-            orders.append(("buy","normal_farmer_tool",qty))
-            
+        
         if special_farming_tool <= 0:
             qty = 1
             orders.append(("buy","special_farmer_tool",qty)) 
+        elif normal_farming_tool <= 0:
+            qty = 1
+            orders.append(("buy","normal_farmer_tool",qty))
+            
+       
             
                   
             
