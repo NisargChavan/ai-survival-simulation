@@ -8,7 +8,10 @@ class Market:
           self.prices = {
             "crops": 5,
             "woods": 4,
-            "rare_crop": 15
+            "rare_crop": 40,
+            "normal_farmer_tool" : 25,
+            "special_farmer_tool" : 100
+          
           }
           
           
@@ -41,7 +44,7 @@ class Market:
       if self.agent_has_open_order(agent, item, "sell"):
         return
     
-      quantity = min(quantity, 10)
+      
 
       if item not in self.sell_orders:
         self.sell_orders[item] = []
@@ -50,7 +53,7 @@ class Market:
         "agent": agent,
         "qty": quantity,
         "age": 0
-    }
+      }
 
       self.sell_orders[item].append(order)
 
@@ -72,7 +75,7 @@ class Market:
       if self.agent_has_open_order(agent, item, "buy"):
         return
 
-      quantity = min(quantity, 10)
+      quantity = min(quantity, 50)
 
       if item not in self.buy_orders:
         self.buy_orders[item] = []
@@ -110,21 +113,30 @@ class Market:
                 supply = 1
                             
             demand_ratio = (demand + 1) / (supply + 1)
-            new_price = self.base_price[item] * demand_ratio
+            new_price = self.prices[item] * demand_ratio
+            new_price = max(self.prices[item] * 0.9 , min(new_price,self.prices[item] * 1.1))
+            
             
             
             
             
             self.prices[item] = (
-                0.8 * self.prices[item] +
-                0.2 * new_price
+                0.6 * self.prices[item] +
+                0.4 * new_price
             )
+
+            # Tool price cap
+            if item == "normal_farmer_tool":
+                self.prices[item] = min(self.prices[item], 40)
+
+            if item == "special_farmer_tool":
+                self.prices[item] = min(self.prices[item], 120)
 
             if demand == 0:
               demand = 1
            
-            if self.prices[item] < 0.5:
-                self.prices[item] = 0.5
+            if self.prices[item] < 1.3:
+               self.prices[item] = 1.3
                 
                 
                 
@@ -195,7 +207,7 @@ class Market:
 
                 traded_pairs.add(pair)
 
-                trade_qty = min(sell_order["qty"], buy_order["qty"], 10)
+                trade_qty = min(sell_order["qty"], buy_order["qty"])
 
                 actual_inventory = seller.inventory.get(item, 0)
                 trade_qty = min(trade_qty, actual_inventory)
@@ -219,6 +231,12 @@ class Market:
                 buyer.inventory[item] += trade_qty
                 buyer.money -= cost
                 print(Fore.GREEN + f"{buyer.name} bought {item} x{trade_qty}")
+                
+                if item == "normal_farmer_tool":
+                  buyer.tool_durability["normal_farmer_tool"] = 50
+
+                if item == "special_farmer_tool":
+                  buyer.tool_durability["special_farmer_tool"] = 100
 
 
                 # Log trade

@@ -11,7 +11,7 @@ class ProfitEvaluator:
     
         
         expected_crop_yield = 7
-        seeds = 0
+        
         energy_cost = 4
         
         base_profit = expected_crop_yield * crop_pirce - energy_cost
@@ -47,7 +47,7 @@ class ProfitEvaluator:
         
         expected_crop_yield = 2
         expected_wood_yield = 1
-        balanced = profession_counts["lumberjack"]
+        balanced = profession_counts["balanced"]
        
         revenue = (crop_price * expected_crop_yield) + (wood_price * expected_wood_yield)
         

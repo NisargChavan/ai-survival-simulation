@@ -4,7 +4,7 @@ from src.economy.farmer_strategy import FarmerStrategy
 from src.economy.lumberjack_strategy import LumberJackStrategy
 from src.economy.balanced_strategy import BalancedStrategy
 from src.economy.ProfitEvaluator import ProfitEvaluator
-
+from src.llm.ollama_chat import llm
 from src.market import market
 
 
@@ -87,6 +87,12 @@ class Agent:
             "crops": 200,
             "woods": self.wood_target
         }
+        self.personality = random.choice([
+            "cautious",
+            "greedy",
+            "optimistic",
+            "pessimistic"
+        ])
         self.q_table = {
          i: {"up":0, "down":0, "left":0, "right":0}
          for i in range(50)         
@@ -97,11 +103,14 @@ class Agent:
             "crops" : 0,
             "woods" : 0,
             "normal_farmer_tool" : 0,
-            "normal_farmer_tool_durability" : 0,
             "special_farmer_tool" : 0,
-            "special_farmer_tool_durability" : 0,
             "rare_crop" : 0
             
+        }
+        
+        self.tool_durability = {
+            "normal_farmer_tool": 0,
+            "special_farmer_tool": 0
         }
        
         self.danger_weight = danger_weight
@@ -110,7 +119,7 @@ class Agent:
         self.gamma = 0.9    
         
     
-    
+
         
     
     def evaluat_economy(self,profession_count):
@@ -167,7 +176,7 @@ class Agent:
         cy - half <= y <= cy + half
      )
      
-    def decide_market_orders(self, market):
+    def decide_market_orders(self, market,):
       return self.strategy.decide_orders(market)
 
  
@@ -183,7 +192,7 @@ class Agent:
      elif self.role == "lumberjack":
         self.strategy = LumberJackStrategy(self)
         self.crop_multiplier = 0
-        self.wood_multiplier = 3.0
+        self.wood_multiplier = 8.0
 
      else:
         self.strategy = BalancedStrategy(self)

@@ -10,9 +10,16 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from src.market import Market
 from src.market import market
+from src.communication.chat import broadcast, get_recent_chat
+from src.communication.chat_worker import chat_queue
+# from src.communication.chat_worker import start_chat_worker
+
+# start_chat_worker()
 
 
-MARKET_INTERVAL = 40
+CHAT_INTERVAL = 100
+TEST_INTERVAL = 1000
+MARKET_INTERVAL = 50
 ORDER_SUBMISSION_INTERVAL = 3
 
 sns.set(style="darkgrid")
@@ -82,6 +89,12 @@ STEPS_PER_EPISODE = 10000
 LOG_FILE = "run_log.txt"
 MARKET_LOG_FILE = "market_log.txt"
 log_buffer = []
+CHAT_LOG_FILE = "chat_log.txt"
+
+with open(CHAT_LOG_FILE, "w", encoding="utf-8") as f:
+    f.write("AI Survival World - Global Chat Log\n")
+    f.write("====================================\n\n")
+
 
 with open(MARKET_LOG_FILE, "w") as f:
     f.write("AI Survival World - Market Log\n")
@@ -209,10 +222,10 @@ for episode in range(EPISODES):
         agent.inventory['seeds'] = 5
         agent.inventory['food'] = 40
         agent.inventory['woods'] = 0
-        agent.inventory['special_farmer_tool'] = 1
+        agent.inventory['special_farmer_tool'] = 0
         agent.inventory['normal_farmer_tool'] = 0
-        agent.inventory['normal_farmer_tool_durability'] = 0
-        agent.inventory['special_farmer_tool_durability'] = 0
+        agent.tool_durability['normal_farmer_tool_durability'] = 0
+        agent.tool_durability['special_farmer_tool_durability'] = 0
         agent.inventory['rare_crop'] = 0
     
         
@@ -293,6 +306,20 @@ for episode in range(EPISODES):
             # --- Spawn tree ---
             if not in_any_plot and not too_close and len(woods) < 70:
                 woods.append((fx, fy))
+        
+        # if step % CHAT_INTERVAL == 0:
+
+        #     speaker = random.choice(agents)
+
+        #     recent_chat = get_recent_chat()
+             
+        #     for agent in agents:
+        #        chat_queue.put((agent, market, recent_chat, step))
+
+        if step % TEST_INTERVAL == 0:
+            for agent in agents:
+                print(Fore.RED+f"{agent.name} : {agent.mo}")        
+                
                 
         #Market   
         if step % ORDER_SUBMISSION_INTERVAL == 0:
@@ -327,7 +354,10 @@ for episode in range(EPISODES):
           print(
             f"[Market] Step {step} | "
             f"Crops: {market.prices['crops']:.2f} | "
-            f"Woods: {market.prices['woods']:.2f}"
+            f"Woods: {market.prices['woods']:.2f} | "
+            f"Normal Farmer Tool : {market.prices['normal_farmer_tool']:.2f} | "
+            f"Special Farmer Tool : {market.prices['special_farmer_tool']:.2f} | "
+            f"Rare Crops: {market.prices['rare_crop']:.2f} | "
           )
 
                 
@@ -392,19 +422,24 @@ for episode in range(EPISODES):
                 
              
             # Auto craft tool if none 
-            if agent.role == "farmer" and  agent.inventory["special_farmer_tool"] == 0 and agent.inventory["woods"] >= 300:
-                agent.inventory["woods"] -= 300
+            if agent.role == "lumberjack" and  agent.inventory["special_farmer_tool"] == 0  and agent.inventory["woods"] >= 150 and agent.inventory["rare_crop"] >= 2:
+                agent.inventory["woods"] -= 150
+                agent.inventory["rare_crop"] -= 2
                 agent.inventory["special_farmer_tool"] += 1
                 episode_speical_tool_crafted +=1
                 log(f"{agent.name} crafted a special farming tool at {step} step!!")
-                agent.inventory["special_farmer_tool_durability"] = 100       
+                agent.tool_durability["special_farmer_tool"] = 100      
                 
                 
-            if agent.inventory["normal_farmer_tool"] == 0 and agent.inventory["woods"] >=200:
-                agent.inventory["woods"] -= 100
+            if  agent.role == "lumberjack" and agent.inventory["normal_farmer_tool"] == 0 and agent.inventory["woods"] >=50:
+                agent.inventory["woods"] -= 50
                 agent.inventory["normal_farmer_tool"] += 1
                 episode_normal_tool_crafted += 1
-                agent.inventory["normal_farmer_tool_durability"] = 30  
+                agent.tool_durability["normal_farmer_tool_durability"] = 60 
+                
+            if agent.inventory["crops"] > 300 and agent.role == "farmer":
+                agent.inventory['crops'] -= 200
+                agent.inventory['rare_crop']  += 1  
                 
                  
         
@@ -533,13 +568,13 @@ for episode in range(EPISODES):
                 if agent.inventory.get("special_farmer_tool" , 0) > 0:
                      crop_gain =  int(2 * agent.crop_multiplier)
                      energy_gain = 10
-                     agent.inventory["special_farmer_tool_durability"] -= 1
+                     agent.tool_durability["special_farmer_tool_durability"] -= 1
                     
                      if random.random() < 0.05:
                         agent.inventory["rare_crop"] += 1
                         
                      
-                     if agent.inventory["special_farmer_tool_durability"] <= 0:
+                     if agent.tool_durability["special_farmer_tool_durability"] <= 0:
                          agent.inventory["special_farmer_tool"] = 0  
                      
                 
@@ -547,9 +582,9 @@ for episode in range(EPISODES):
                 elif agent.inventory.get("normal_farmer_tool", 0) > 0:
                      crop_gain =  int(1 * agent.crop_multiplier)
                      energy_gain = 8
-                     agent.inventory["normal_farmer_tool_durability"] -= 1
+                     agent.tool_durability["normal_farmer_tool_durability"] -= 1
                      
-                     if agent.inventory["normal_farmer_tool_durability"] <= 0:
+                     if agent.tool_durability["normal_farmer_tool_durability"] <= 0:
                          agent.inventory["normal_farmer_tool"] = 0
                      
                                                      

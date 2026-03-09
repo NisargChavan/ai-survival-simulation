@@ -27,7 +27,7 @@ world_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 AGENT_SCALE = int(CELL_SIZE * 4)
 WOOD_SCALE = int(CELL_SIZE * 1.3)
-CROP_SCALE = int(CELL_SIZE * 1*2)
+CROP_SCALE = int(CELL_SIZE * 1)
 
 # ===============================
 # INIT
@@ -311,4 +311,4 @@ def draw_world(agents, foods, farms, crops, woods,episode, step, energy_packs, d
     
     
     pygame.display.flip()
-    clock.tick(6)
+    clock.tick(100)

@@ -1,3 +1,71 @@
 AI Survival World Run Log
-Run Time: 2026-03-08 16:08:16.729626
+Run Time: 2026-03-09 22:58:41.626733
 ====================================
+
+===== EPISODE 1 =====
+A starts as farmer
+B starts as lumberjack
+C starts as balanced
+D starts as farmer
+B Role: farmer
+B Money : 15.636207517029977 | Food: 11 | Seeds: 0 | Crops: 257 | Woods: 655 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 17 |Normal tool : 7|Special tool : 0| Seeds collected : 4053 |Energy: 14
+A Role: balanced
+A Money : 48.93940457250202 | Food: 21 | Seeds: 1917 | Crops: 975 | Woods: 250 | Normal Farmer Tool: 1 | Special Farmer Tool: 0 | Rare Crop : 1 |Normal tool : 7|Special tool : 0| Seeds collected : 4053 |Energy: 17
+C Role: balanced
+C Money : 1.4831735259415892 | Food: 0 | Seeds: 454 | Crops: 0 | Woods: 7 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 7|Special tool : 0| Seeds collected : 4053 |Energy: 0
+D Role: farmer
+D Money : 33.94121438452631 | Food: 11 | Seeds: 0 | Crops: 132 | Woods: 418 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 6 |Normal tool : 7|Special tool : 0| Seeds collected : 4053 |Energy: 59
+
+===== EPISODE 2 =====
+B starts as farmer
+A starts as lumberjack
+C starts as balanced
+D starts as farmer
+D crafted a special farming tool at 3862 step!!
+B crafted a special farming tool at 5600 step!!
+D crafted a special farming tool at 8650 step!!
+A Role: balanced
+A Money : 21.954772119444762 | Food: 11 | Seeds: 2935 | Crops: 1215 | Woods: 244 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 7|Special tool : 3| Seeds collected : 6426 |Energy: 13
+B Role: farmer
+B Money : 24.76537952376991 | Food: 20 | Seeds: 703 | Crops: 110 | Woods: 326 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 10 |Normal tool : 7|Special tool : 3| Seeds collected : 6426 |Energy: 96
+D Role: balanced
+D Money : 47.53526077269307 | Food: 11 | Seeds: 415 | Crops: 210 | Woods: 196 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 8 |Normal tool : 7|Special tool : 3| Seeds collected : 6426 |Energy: 17
+C Role: farmer
+C Money : 5.7445875840922485 | Food: 10 | Seeds: 0 | Crops: 249 | Woods: 395 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 18 |Normal tool : 7|Special tool : 3| Seeds collected : 6426 |Energy: 18
+
+===== EPISODE 3 =====
+A starts as farmer
+B starts as lumberjack
+D starts as balanced
+C starts as farmer
+TRADE: D → B (crops for wood)
+TRADE: D → B (crops for wood)
+A crafted a special farming tool at 1393 step!!
+B crafted a special farming tool at 2049 step!!
+C crafted a special farming tool at 5150 step!!
+A crafted a special farming tool at 6941 step!!
+C crafted a special farming tool at 9300 step!!
+C Role: lumberjack
+C Money : 52.26802384573809 | Food: 20 | Seeds: 199 | Crops: 246 | Woods: 279 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 8 |Normal tool : 5|Special tool : 5| Seeds collected : 3953 |Energy: 18
+B Role: balanced
+B Money : 31.09315793401418 | Food: 10 | Seeds: 670 | Crops: 55 | Woods: 150 | Normal Farmer Tool: 0 | Special Farmer Tool: 1 | Rare Crop : 1 |Normal tool : 5|Special tool : 5| Seeds collected : 3953 |Energy: 10
+A Role: farmer
+A Money : 16.287688679182065 | Food: 15 | Seeds: 835 | Crops: 194 | Woods: 311 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 13 |Normal tool : 5|Special tool : 5| Seeds collected : 3953 |Energy: 92
+D Role: farmer
+D Money : 0.3511295410655286 | Food: 10 | Seeds: 0 | Crops: 195 | Woods: 389 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 12 |Normal tool : 5|Special tool : 5| Seeds collected : 3953 |Energy: 21
+
+===== EPISODE 4 =====
+C starts as farmer
+B starts as lumberjack
+A starts as balanced
+D starts as farmer
+B crafted a special farming tool at 2977 step!!
+C crafted a special farming tool at 3693 step!!
+D Role: farmer
+D Money : 21.386579320713526 | Food: 11 | Seeds: 0 | Crops: 93 | Woods: 574 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 23 |Normal tool : 4|Special tool : 2| Seeds collected : 4346 |Energy: 29
+A Role: farmer
+A Money : 9.237886566148203 | Food: 11 | Seeds: 0 | Crops: 156 | Woods: 421 | Normal Farmer Tool: 0 | Special Farmer Tool: 0 | Rare Crop : 9 |Normal tool : 4|Special tool : 2| Seeds collected : 4346 |Energy: 17
+C Role: balanced
+C Money : 52.16022810659334 | Food: 10 | Seeds: 1101 | Crops: 273 | Woods: 241 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 1 |Normal tool : 4|Special tool : 2| Seeds collected : 4346 |Energy: 17
+B Role: balanced
+B Money : 17.215306006544893 | Food: 11 | Seeds: 1087 | Crops: 130 | Woods: 234 | Normal Farmer Tool: 1 | Special Farmer Tool: 1 | Rare Crop : 0 |Normal tool : 4|Special tool : 2| Seeds collected : 4346 |Energy: 15

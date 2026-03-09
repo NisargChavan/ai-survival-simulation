@@ -2,7 +2,7 @@ import random
 from colorama import Fore, Style, init
 init(autoreset=True)
 
-
+#NOT BEING USED
 def decide_direction(foods, agent):
 
     # =====================================================
